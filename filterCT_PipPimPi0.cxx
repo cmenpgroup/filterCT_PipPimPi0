@@ -7,6 +7,8 @@
 #include "TClasTool.h"
 #include "TIdentificator.h"
 #include "TMath.h"
+#include "TString.h"
+#include "TMath.h"
 #include "massConst.h"
 using namespace std;
 
@@ -16,14 +18,30 @@ using namespace std;
 #define MAX_PHOTONS 2
 
 #define PDG_PHOTON 22
+#define PDG_POSITRON -11
 #define PDG_ELECTRON 11
 #define PDG_PIPLUS 211
 #define PDG_PIMINUS -211
+#define PDG_KPLUS 321
+#define PDG_KMINUS -321
+#define PDG_NEUTRON 2112
+#define PDG_PROTON 2212
 
 #define GEANT3_PHOTON 1
+#define GEANT3_POSITRON 2
 #define GEANT3_ELECTRON 3
 #define GEANT3_PIPLUS 8
 #define GEANT3_PIMINUS 9
+#define GEANT3_KPLUS 11
+#define GEANT3_KMINUS 12
+#define GEANT3_NEUTRON 13
+#define GEANT3_PROTON 14
+
+#define CUT_Q2 1.0
+#define CUT_W 2.0
+#define CUT_NU 0.85
+
+#define EBEAM 5.015  // e- beam energy in GeV
 
 //declarations of functions
 void PrintAnalysisTime(float tStart, float tStop);
@@ -33,7 +51,7 @@ int GetPID(string partName, int kind);
 typedef struct{
     Float_t EvtNum, ElecVertTarg, Q2, Nu, Xb, W;
     Float_t Xcorr, Ycorr, Zcorr;
-    Int_t nElec, nPip, nPim, nGam;
+    Int_t nElec, nPip, nPim, nGam, nProton, nNeutron, nKp, nKm, nPositron;
 } KINEVAR;
 
 typedef struct{
@@ -50,28 +68,35 @@ typedef struct{
 
 int main(int argc, char **argv)
 {
+    gROOT->SetBatch(true);
     extern char *optarg;
     int c;
     extern int optind;
     
     int i, j, k;
-    int nRows, tempPid;
+    int nRows, kind, tempPid;
     int photonCtr;
     int candCtr = 0;
+    int ctr_nElec = 0;
     int dEvents = 1000; // increment of events for processing print statement
     int MaxEvents = 0; // max. number of events to process
     int nfiles = 0; // number of processed files
-    int kind = 0; // initialize bank index for EVNT data
+    
+    TString catPid;
     
     bool bBatchMode = false;    // quiet mode
+    bool simul_key = false;  // simulation flag (true = simulation, false = data)
+    bool mflag = true; // cut flag for GetCategorization(k,tt,mflag)
+    int cat_key = 0; // PID categorization 0 = EVNT (default), 1 = Full
+    int tgt_key = 1;  // intitialize target flag 1 = Carbon (default), 2 = Iron, 3 = Lead
+    string target; // solid target name
 
     char *inFile;
     string outFile = "PipPimPi0.root";
     
     bool topology = false;
     vector<int> partIndex;
-    vector<int> partID;
-    
+
     TVector3 *vert;
     TVector3 *ECxyz = new TVector3(0.0,0.0,0.0);
     TVector3 *ECuvw;
@@ -84,12 +109,14 @@ int main(int argc, char **argv)
     TIdentificator *t = new TIdentificator(input);
     
     for (i = 0; i < argc; ++i) cerr << argv[i] << " "; cerr << endl;
-    while ((c = getopt(argc,argv, "o:M:D:Sih")) != -1 ) {
+    while ((c = getopt(argc,argv, "o:M:D:c:t:Sih")) != -1 ) {
         switch (c) {
             case 'o': outFile = optarg; break;
             case 'M': MaxEvents = atoi(optarg); break;
             case 'D': dEvents = atoi(optarg); break;
-            case 'S': kind = 1; break;
+            case 'c': cat_key = atoi(optarg); break;
+            case 't': tgt_key = atoi(optarg); break;
+            case 'S': simul_key = true; break;
             case 'i': bBatchMode = true; break;
             case 'h':
                 PrintUsage(argv[0]);
@@ -105,8 +132,17 @@ int main(int argc, char **argv)
     }
     
     TFile *output; // ROOT output file
-
-    string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I";
+    
+    // check target selection
+    switch(tgt_key){
+        case 1: target = "C"; break;
+        case 2: target = "Fe"; break;
+        case 3: target = "Pb"; break;
+        default: cout<<"Unknown target "<<target<<endl; exit(0); break;
+    }
+    cout<<"Analyzing " << target << " target data"<<endl;
+    
+    string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I:nProton/I:nNeutron/I:nKp/I:nKm/I:nPositron/I";
  
     string partList = "Sector/I:Charge/F:Pid/F:Beta/F:Px/F:Py/F:Pz/F:Mom/F:Mass2/F:X/F:Y/F:Z/F:ECx/F:ECy/F:ECz/F:ECu/F:ECv/F:ECw/F:ECtot/F:ECin/F:ECout/F:ECtime/F:ECpath/F:EChit_M2/F:EChit_M3/F:EChit_M4/F:Chi2EC/F:SCpath/F:SCtime/F:CCnphe/F:T/F:Xf/F:Mx2/F:Pt/F:Zh/F:ThetaPQ/F:PhiPQ/F:TimeCorr4/F";    
     KINEVAR myKine;
@@ -153,61 +189,75 @@ int main(int argc, char **argv)
     		cerr << k << "\r";
     	}
 
-        myKine.nElec = 0;
-        myKine.nPip = 0;
-        myKine.nPim = 0;
-        myKine.nGam = 0;
-        partIndex.clear();
-        partID.clear();
-        topology = false;
-        
-        cout<<"Event "<<k+1<<endl;
-
-        if(kind==1){
+        if(simul_key){
+            kind = 1;
             nRows = input->GetNRows("GSIM");
         }else{
+            kind = 0;
             nRows = input->GetNRows("EVNT");
         }
         
+//       cout<<"Event "<<k+1<<endl;
+        
         if(nRows>0){
-            cout<<"Particle 0 "<< t->Id(0,kind) <<" "<<t->GetCategorizationParticle(0,kind)<<endl;
-            if(t->GetCategorizationParticle(0, kind) == "electron"){
-                myKine.nElec++;
-                if(myKine.nElec>0 && myKine.nElec<=MAX_ELECTRONS){
-                    partIndex.push_back(0);
-                    partID.push_back(GetPID("Electron",kind));
-                }
-            }
-            for (j = 1; j < nRows; j++) {
-                tempPid = t -> Id(j,kind);
-                cout<<"Particle "<< tempPid <<" "<<t->GetCategorizationParticle(j,kind)<<endl;
+      		myKine.nElec = 0;
+      		myKine.nPip = 0;
+	    	myKine.nPim = 0;
+	    	myKine.nGam = 0;
+	    	myKine.nProton = 0;
+            myKine.nNeutron = 0;
+            myKine.nKp = 0;
+            myKine.nKm = 0;
+            myKine.nPositron = 0;
+            partIndex.clear(); // clear out the particle list
+	    	topology = false; // init. the event topology cut
+	    	for (j = 0; j < nRows; j++) {
 
-                if(tempPid == GetPID("PiPlus",kind)){
-                    myKine.nPip++;
-                    if(myKine.nPip>0 && myKine.nPip<=MAX_PIPLUS){
-                        partIndex.push_back(j);
-                        partID.push_back(GetPID("PiPlus",kind));
+                // select the PID selection scheme
+                if(simul_key){
+                    catPid = t -> GetCategorizationGSIM(j);
+                }else{
+                    switch(cat_key){
+                        case 0: catPid = t -> GetCategorizationEVNT(j); break;
+                        case 1: catPid = t -> GetCategorization(j,target.c_str(),mflag); break;
+                        default: cout<<"Incorrect PID categorization.  Try again."<<endl; exit(0); break;
                     }
                 }
-                if(tempPid == GetPID("PiMinus",kind)){
+                tempPid = t -> Id(j,kind);
+               
+//                cout<<"Particle "<< tempPid <<"\t"<<catPid<<endl;
+//                if(tempPid == GetPID("Electron",kind)){
+                if(catPid.EqualTo("electron")){
+                    myKine.nElec++;
+                    if(myKine.nElec>0 && myKine.nElec<=MAX_ELECTRONS) partIndex.push_back(j);
+                    ctr_nElec++;
+                }
+                if(catPid.EqualTo("high energy pion +") || catPid.EqualTo("low energy pion +") || catPid.EqualTo("pi+")){
+//                if(tempPid == GetPID("PiPlus",kind)){
+                    myKine.nPip++;
+                    if(myKine.nPip>0 && myKine.nPip<=MAX_PIPLUS) partIndex.push_back(j);
+                }
+                if(catPid.EqualTo("pi-")){
+//                if(tempPid == GetPID("PiMinus",kind)){
                     myKine.nPim++;
-                    if(myKine.nPim>0 && myKine.nPim<=MAX_PIMINUS){
-                        partIndex.push_back(j);
-                        partID.push_back(GetPID("PiMinus",kind));
-                    }
+                    if(myKine.nPim>0 && myKine.nPim<=MAX_PIMINUS) partIndex.push_back(j);
+                }
+                if(catPid.EqualTo("gamma")){
+//                if(tempPid == GetPID("Photon",kind)){
+                    myKine.nGam++;
+                    if(myKine.nGam>0 && myKine.nGam<=MAX_PHOTONS) partIndex.push_back(j);
                 }
                 
-                if(t->GetCategorizationParticle(j, kind) == "gamma"){
-                    myKine.nGam++;
-                    if(myKine.nGam>0 && myKine.nGam<=MAX_PHOTONS){
-                        partIndex.push_back(j);
-                        partID.push_back(GetPID("Photon",kind));
-                    }
-                }
+                if(tempPid == GetPID("Proton",kind)) myKine.nProton++;
+                if(tempPid == GetPID("Neutron",kind)) myKine.nNeutron++;
+                if(tempPid == GetPID("KPlus",kind)) myKine.nKp++;
+                if(tempPid == GetPID("KMinus",kind)) myKine.nKm++;
+                if(tempPid == GetPID("Positron",kind)) myKine.nPositron++;
             }
-	    	topology = (myKine.nElec>0 && myKine.nPip>0 && myKine.nPim>0 && myKine.nGam>=MAX_PHOTONS && partIndex.size()==partID.size()); // check event topology
+            
+	    	topology = (myKine.nElec>0 && myKine.nPip>0 && myKine.nPim>0 && myKine.nGam>=MAX_PHOTONS); // check event topology
 
-	    	if(topology && t->Q2(kind) > 1. && t->W(kind) > 2. && t->Nu(kind)/5.015 < 0.85) {
+	    	if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
                 candCtr++;
                 myKine.EvtNum = t -> NEvent();
                 myKine.ElecVertTarg = t -> ElecVertTarg(kind);
@@ -216,7 +266,7 @@ int main(int argc, char **argv)
 	       		myKine.Xb = t -> Xb(kind);
         		myKine.W = t -> W(kind);
 
-                if(kind==1){
+                if(simul_key){
                     myKine.Xcorr = t->X(0, kind);
                     myKine.Ycorr = t->Y(0, kind);
                     myKine.Zcorr = t->Z(0, kind);
@@ -229,14 +279,13 @@ int main(int argc, char **argv)
 
 	    		photonCtr = 0;
         		while (!partIndex.empty()) {
-		    		i = partIndex.back(); // retrieve EVNT/GSIM index for each particle
+		    		i = partIndex.back(); // retrieve EVNT index for each particle
                     partIndex.pop_back(); // erase last entry in the list
 
-                    myPart.Sector = t->Sector(kind);
-                    myPart.Charge = t->Charge(kind);
-                    myPart.Beta = t->Betta(kind);
-                    myPart.Pid = partID.back(); // retrieve PID
-                    partID.pop_back(); // erase last entry in the list
+                    myPart.Sector = t->Sector(i,kind);
+                    myPart.Charge = t->Charge(i,kind);
+                    myPart.Beta = t->Betta(i,kind);
+                    myPart.Pid = t->Id(i,kind);
                     myPart.Mom = t->Momentum(i,kind);
                     myPart.Px = t->Px(i, kind);
                     myPart.Py = t->Py(i, kind);
@@ -244,7 +293,7 @@ int main(int argc, char **argv)
                     myPart.X = t->X(i, kind);
                     myPart.Y = t->Y(i, kind);
                     myPart.Z = t->Z(i, kind);
-                    myPart.Mass2 = t->Mass2(i, kind);
+                    myPart.Mass2 = t->Mass2(i,kind);
 
                     myPart.ThetaPQ = t -> ThetaPQ(i, kind);
                     myPart.PhiPQ = t -> PhiPQ(i, kind);
@@ -275,7 +324,7 @@ int main(int argc, char **argv)
                     myPart.CCnphe = 0;
                     myPart.TimeCorr4 = 0;
                     
-                    if(kind == 0){
+                    if(simul_key == false){
                         myPart.ECtot = TMath::Max(t->Etot(i),t->Ein(i)+t->Eout(i));
                         myPart.ECin = t->Ein(i);
                         myPart.ECout = t->Eout(i);
@@ -325,7 +374,8 @@ int main(int argc, char **argv)
 
     dataTree->Write();
     cout<<"Candidate data events = "<<candCtr<<endl;
-
+    cout<<"#(e-) = "<<ctr_nElec<<endl;
+                   
     output->Write();
     output->Close();
     
@@ -342,6 +392,8 @@ void PrintUsage(char *processName)
     cerr << "\t-o<filename>\tROOT output file (def. = PipPimPi0.root).\n";
     cerr << "\t-M#\t\tprocess maximum # of events.\n";
     cerr << "\t-D#\t\tinform user when # of events have been processed (def. = 1000).\n";
+    cerr << "\t-c#\t\tType in categoization # scheme of 0=EVNT or 1=Full (def. = 0).\n";
+    cerr << "\t-t#\t\tTarget # of 1=C, 2=Fe, or 3=Pb (def. = 1).\n";
     cerr << "\t-S\t\tAnalyze simulation.\n";
     cerr << "\t-i\t\tquiet mode (no counter).\n";
     cerr << "\t-h\t\tprint the above" << endl;
@@ -373,24 +425,44 @@ int GetPID(string partName, int kind){
     if(kind==0){
         if(partName.compare("Electron")==0){
             ret = PDG_ELECTRON;
+        }else if(partName.compare("Positron")==0){
+            ret = PDG_POSITRON;
         }else if(partName.compare("Photon")==0){
             ret = PDG_PHOTON;
         }else if(partName.compare("PiPlus")==0){
             ret = PDG_PIPLUS;
         }else if(partName.compare("PiMinus")==0){
             ret = PDG_PIMINUS;
+        }else if(partName.compare("KPlus")==0){
+            ret = PDG_KPLUS;
+        }else if(partName.compare("KMinus")==0){
+            ret = PDG_KMINUS;
+        }else if(partName.compare("Neutron")==0){
+            ret = PDG_NEUTRON;
+        }else if(partName.compare("Proton")==0){
+            ret = PDG_PROTON;
         }else{
             cerr<<"GetPid(): Unknown PDG particle "<<partName.c_str()<<endl; exit(0);
         }
     }else if(kind==1){
         if(partName.compare("Electron")==0){
             ret = GEANT3_ELECTRON;
+        }else if(partName.compare("Positron")==0){
+            ret = GEANT3_POSITRON;
         }else if(partName.compare("Photon")==0){
             ret = GEANT3_PHOTON;
         }else if(partName.compare("PiPlus")==0){
             ret = GEANT3_PIPLUS;
         }else if(partName.compare("PiMinus")==0){
             ret = GEANT3_PIMINUS;
+        }else if(partName.compare("KPlus")==0){
+            ret = GEANT3_KPLUS;
+        }else if(partName.compare("KMinus")==0){
+            ret = GEANT3_KMINUS;
+        }else if(partName.compare("Neutron")==0){
+            ret = GEANT3_NEUTRON;
+        }else if(partName.compare("Proton")==0){
+            ret = GEANT3_PROTON;
         }else{
             cerr<<"GetPid(): Unknown GEANT3 particle "<<partName.c_str()<<endl; exit(0);
         }
