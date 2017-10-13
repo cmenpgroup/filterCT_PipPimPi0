@@ -152,6 +152,7 @@ int main(int argc, char **argv)
     PARTVAR myPhoton1;
     PARTVAR myPhoton2;
 
+    int nEm;
     string branchName;
     
     TTree *dataTree = new TTree("Data","Experimental Data Tree");
@@ -205,6 +206,7 @@ int main(int argc, char **argv)
 //       cout<<"Event "<<k+1<<endl;
         
         if(nRows>0){
+            nEm = 0;
       		myKine.nElec = 0;
       		myKine.nPip = 0;
 	    	myKine.nPim = 0;
@@ -359,7 +361,10 @@ int main(int argc, char **argv)
                         if(myPart.Pid == GetPID("Photon",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.0,i);
                     }
 
-                    if(myPart.Pid == GetPID("Electron",kind)) myElec[kk] = myPart;
+                    if(myPart.Pid == GetPID("Electron",kind)){
+                        myElec[nEm] = myPart;
+                        nEm++;
+                    }
                     if(myPart.Pid == GetPID("PiPlus",kind)) myPip = myPart;
                     if(myPart.Pid == GetPID("PiMinus",kind)) myPim = myPart;
                     if(myPart.Pid == GetPID("Photon",kind)){
