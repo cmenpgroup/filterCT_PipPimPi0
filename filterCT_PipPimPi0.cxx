@@ -163,8 +163,8 @@ int main(int argc, char **argv)
     dataTree->Branch("Photon1",&myPhoton1,partList.c_str());
     dataTree->Branch("Photon2",&myPhoton2,partList.c_str());
     for(int kk=0; kk<10; k++){
-        branchname = "Electron" + kk;
-        dataTree->Branch(branchname.c_str(),&myElec[kk],partList.c_str());
+        branchName = "Electron" + kk;
+        dataTree->Branch(branchName.c_str(),&myElec[kk],partList.c_str());
     }
     
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
