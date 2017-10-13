@@ -68,7 +68,6 @@ typedef struct{
 
 int main(int argc, char **argv)
 {
-    gROOT->SetBatch(true);
     extern char *optarg;
     int c;
     extern int optind;
@@ -147,20 +146,26 @@ int main(int argc, char **argv)
     string partList = "Sector/I:Charge/F:Pid/F:Beta/F:Px/F:Py/F:Pz/F:Mom/F:Mass2/F:X/F:Y/F:Z/F:ECx/F:ECy/F:ECz/F:ECu/F:ECv/F:ECw/F:ECtot/F:ECin/F:ECout/F:ECtime/F:ECpath/F:EChit_M2/F:EChit_M3/F:EChit_M4/F:Chi2EC/F:SCpath/F:SCtime/F:CCnphe/F:T/F:Xf/F:Mx2/F:Pt/F:Zh/F:ThetaPQ/F:PhiPQ/F:TimeCorr4/F";    
     KINEVAR myKine;
     PARTVAR myPart;
-    PARTVAR myElec;
+    PARTVAR myElec[10];
     PARTVAR myPip;
     PARTVAR myPim;
     PARTVAR myPhoton1;
     PARTVAR myPhoton2;
 
+    string branchName;
+    
     TTree *dataTree = new TTree("Data","Experimental Data Tree");
     dataTree->Branch("Kinematics",&myKine,kineList.c_str());
-    dataTree->Branch("Electron",&myElec,partList.c_str());
+//    dataTree->Branch("Electron",&myElec,partList.c_str());
     dataTree->Branch("PiPlus",&myPip,partList.c_str());
     dataTree->Branch("PiMinus",&myPim,partList.c_str());
     dataTree->Branch("Photon1",&myPhoton1,partList.c_str());
     dataTree->Branch("Photon2",&myPhoton2,partList.c_str());
-
+    for(int kk=0; kk<10; k++){
+        branchname = "Electron" + kk;
+        dataTree->Branch(branchname,&myElec[kk],partList.c_str());
+    }
+    
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
     for (i = optind; i < argc; ++i) {
@@ -354,7 +359,7 @@ int main(int argc, char **argv)
                         if(myPart.Pid == GetPID("Photon",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.0,i);
                     }
 
-                    if(myPart.Pid == GetPID("Electron",kind)) myElec = myPart;
+                    if(myPart.Pid == GetPID("Electron",kind)) myElec[kk] = myPart;
                     if(myPart.Pid == GetPID("PiPlus",kind)) myPip = myPart;
                     if(myPart.Pid == GetPID("PiMinus",kind)) myPim = myPart;
                     if(myPart.Pid == GetPID("Photon",kind)){
