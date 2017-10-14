@@ -146,7 +146,16 @@ int main(int argc, char **argv)
     string partList = "Sector/I:Charge/F:Pid/F:Beta/F:Px/F:Py/F:Pz/F:Mom/F:Mass2/F:X/F:Y/F:Z/F:ECx/F:ECy/F:ECz/F:ECu/F:ECv/F:ECw/F:ECtot/F:ECin/F:ECout/F:ECtime/F:ECpath/F:EChit_M2/F:EChit_M3/F:EChit_M4/F:Chi2EC/F:SCpath/F:SCtime/F:CCnphe/F:T/F:Xf/F:Mx2/F:Pt/F:Zh/F:ThetaPQ/F:PhiPQ/F:TimeCorr4/F";    
     KINEVAR myKine;
     PARTVAR myPart;
-    PARTVAR *myElec[10];
+    PARTVAR myElec1;
+    PARTVAR myElec2;
+    PARTVAR myElec3;
+    PARTVAR myElec4;
+    PARTVAR myElec5;
+    PARTVAR myElec6;
+    PARTVAR myElec7;
+    PARTVAR myElec8;
+    PARTVAR myElec9;
+    PARTVAR myElec10;
     PARTVAR myPip;
     PARTVAR myPim;
     PARTVAR myPhoton1;
@@ -157,15 +166,20 @@ int main(int argc, char **argv)
     
     TTree *dataTree = new TTree("Data","Experimental Data Tree");
     dataTree->Branch("Kinematics",&myKine,kineList.c_str());
-//    dataTree->Branch("Electron",&myElec,partList.c_str());
+    dataTree->Branch("Electron1",&myElec1,partList.c_str());
+    dataTree->Branch("Electron2",&myElec2,partList.c_str());
+    dataTree->Branch("Electron3",&myElec3,partList.c_str());
+    dataTree->Branch("Electron4",&myElec4,partList.c_str());
+    dataTree->Branch("Electron5",&myElec5,partList.c_str());
+    dataTree->Branch("Electron6",&myElec6,partList.c_str());
+    dataTree->Branch("Electron7",&myElec7,partList.c_str());
+    dataTree->Branch("Electron8",&myElec8,partList.c_str());
+    dataTree->Branch("Electron9",&myElec9,partList.c_str());
+    dataTree->Branch("Electron10",&myElec10,partList.c_str());
     dataTree->Branch("PiPlus",&myPip,partList.c_str());
     dataTree->Branch("PiMinus",&myPim,partList.c_str());
     dataTree->Branch("Photon1",&myPhoton1,partList.c_str());
     dataTree->Branch("Photon2",&myPhoton2,partList.c_str());
-    for(int kk=0; kk<10; kk++){
-        branchName = "Electron" + kk;
-        dataTree->Branch(branchName.c_str(),&myElec[kk],partList.c_str());
-    }
     
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
@@ -362,8 +376,8 @@ int main(int argc, char **argv)
                     }
 
                     if(myPart.Pid == GetPID("Electron",kind)){
-                        myElec[nEm] = myPart;
                         nEm++;
+                        myElec1 = myPart;
                     }
                     if(myPart.Pid == GetPID("PiPlus",kind)) myPip = myPart;
                     if(myPart.Pid == GetPID("PiMinus",kind)) myPim = myPart;
