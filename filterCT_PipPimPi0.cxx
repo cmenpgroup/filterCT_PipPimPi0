@@ -146,7 +146,7 @@ int main(int argc, char **argv)
     string partList = "Sector/I:Charge/F:Pid/F:Beta/F:Px/F:Py/F:Pz/F:Mom/F:Mass2/F:X/F:Y/F:Z/F:ECx/F:ECy/F:ECz/F:ECu/F:ECv/F:ECw/F:ECtot/F:ECin/F:ECout/F:ECtime/F:ECpath/F:EChit_M2/F:EChit_M3/F:EChit_M4/F:Chi2EC/F:SCpath/F:SCtime/F:CCnphe/F:T/F:Xf/F:Mx2/F:Pt/F:Zh/F:ThetaPQ/F:PhiPQ/F:TimeCorr4/F";    
     KINEVAR myKine;
     PARTVAR myPart;
-    PARTVAR myElec[10];
+    PARTVAR *myElec[10];
     PARTVAR myPip;
     PARTVAR myPim;
     PARTVAR myPhoton1;
