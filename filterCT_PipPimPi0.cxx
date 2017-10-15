@@ -43,6 +43,8 @@ using namespace std;
 
 #define EBEAM 5.015  // e- beam energy in GeV
 
+#define MAX_PART 50 // max number of particles in each event
+
 //declarations of functions
 void PrintAnalysisTime(float tStart, float tStop);
 void PrintUsage(char *processName);
@@ -55,15 +57,18 @@ typedef struct{
 } KINEVAR;
 
 typedef struct{
-    int Sector;
-    float Charge, Pid, Beta;
-    float Px, Py, Pz, Mom, Mass2;
-    float X, Y, Z;
-    float ECx, ECy, ECz, ECu, ECv, ECw, ECtot, ECin, ECout, ECtime, ECpath;
-    float EChit_M2, EChit_M3, EChit_M4, Chi2EC;
-    float SCpath, SCtime;
-    float CCnphe; 
-    float T, Xf, Mx2, Pt, Zh, ThetaPQ, PhiPQ, TimeCorr4;
+    float pEvtNum;
+    int nPart;
+    int Sector[MAX_PART];
+    float Charge[MAX_PART], Pid[MAX_PART], Beta[MAX_PART];
+    float Px[MAX_PART], Py[MAX_PART], Pz[MAX_PART], Mom[MAX_PART], Mass2[MAX_PART];
+    float X[MAX_PART], Y[MAX_PART], Z[MAX_PART];
+    float ECx[MAX_PART], ECy[MAX_PART], ECz[MAX_PART], ECu[MAX_PART], ECv[MAX_PART], ECw[MAX_PART];
+    float ECtot[MAX_PART], ECin[MAX_PART], ECout[MAX_PART], ECtime[MAX_PART], ECpath[MAX_PART];
+    float EChit_M2[MAX_PART], EChit_M3[MAX_PART], EChit_M4[MAX_PART], Chi2EC[MAX_PART];
+    float SCpath[MAX_PART], SCtime[MAX_PART];
+    float CCnphe[MAX_PART];
+    float T[MAX_PART], Xf[MAX_PART], Mx2[MAX_PART], Pt[MAX_PART], Zh[MAX_PART], ThetaPQ[MAX_PART], PhiPQ[MAX_PART], TimeCorr4[MAX_PART];
 } PARTVAR;
 
 int main(int argc, char **argv)
@@ -74,7 +79,7 @@ int main(int argc, char **argv)
     
     int i, j, k;
     int nRows, kind, tempPid;
-    int photonCtr;
+    int pCtr;
     int candCtr = 0;
     int ctr_nElec = 0;
     int dEvents = 1000; // increment of events for processing print statement
@@ -143,43 +148,13 @@ int main(int argc, char **argv)
     
     string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I:nProton/I:nNeutron/I:nKp/I:nKm/I:nPositron/I";
  
-    string partList = "Sector/I:Charge/F:Pid/F:Beta/F:Px/F:Py/F:Pz/F:Mom/F:Mass2/F:X/F:Y/F:Z/F:ECx/F:ECy/F:ECz/F:ECu/F:ECv/F:ECw/F:ECtot/F:ECin/F:ECout/F:ECtime/F:ECpath/F:EChit_M2/F:EChit_M3/F:EChit_M4/F:Chi2EC/F:SCpath/F:SCtime/F:CCnphe/F:T/F:Xf/F:Mx2/F:Pt/F:Zh/F:ThetaPQ/F:PhiPQ/F:TimeCorr4/F";    
+    string partList = "pEvtNum/F:nPart/I:Sector[nPart]/I:Charge[nPart]/F:Pid[nPart]/F:Beta[nPart]/F:Px[nPart]/F:Py[nPart]/F:Pz[nPart]/F:Mom[nPart]/F:Mass2[nPart]/F:X[nPart]/F:Y[nPart]/F:Z[nPart]/F:ECx[nPart]/F:ECy[nPart]/F:ECz[nPart]/F:ECu[nPart]/F:ECv[nPart]/F:ECw[nPart]/F:ECtot[nPart]/F:ECin[nPart]/F:ECout[nPart]/F:ECtime[nPart]/F:ECpath[nPart]/F:EChit_M2[nPart]/F:EChit_M3[nPart]/F:EChit_M4[nPart]/F:Chi2EC[nPart]/F:SCpath[nPart]/F:SCtime[nPart]/F:CCnphe[nPart]/F:T[nPart]/F:Xf[nPart]/F:Mx2[nPart]/F:Pt[nPart]/F:Zh[nPart]/F:ThetaPQ[nPart]/F:PhiPQ[nPart]/F:TimeCorr4[nPart]/F";
     KINEVAR myKine;
     PARTVAR myPart;
-    PARTVAR myElec1;
-    PARTVAR myElec2;
-    PARTVAR myElec3;
-    PARTVAR myElec4;
-    PARTVAR myElec5;
-    PARTVAR myElec6;
-    PARTVAR myElec7;
-    PARTVAR myElec8;
-    PARTVAR myElec9;
-    PARTVAR myElec10;
-    PARTVAR myPip;
-    PARTVAR myPim;
-    PARTVAR myPhoton1;
-    PARTVAR myPhoton2;
-
-    int nEm;
-    string branchName;
     
     TTree *dataTree = new TTree("Data","Experimental Data Tree");
     dataTree->Branch("Kinematics",&myKine,kineList.c_str());
-    dataTree->Branch("Electron1",&myElec1,partList.c_str());
-    dataTree->Branch("Electron2",&myElec2,partList.c_str());
-    dataTree->Branch("Electron3",&myElec3,partList.c_str());
-    dataTree->Branch("Electron4",&myElec4,partList.c_str());
-    dataTree->Branch("Electron5",&myElec5,partList.c_str());
-    dataTree->Branch("Electron6",&myElec6,partList.c_str());
-    dataTree->Branch("Electron7",&myElec7,partList.c_str());
-    dataTree->Branch("Electron8",&myElec8,partList.c_str());
-    dataTree->Branch("Electron9",&myElec9,partList.c_str());
-    dataTree->Branch("Electron10",&myElec10,partList.c_str());
-    dataTree->Branch("PiPlus",&myPip,partList.c_str());
-    dataTree->Branch("PiMinus",&myPim,partList.c_str());
-    dataTree->Branch("Photon1",&myPhoton1,partList.c_str());
-    dataTree->Branch("Photon2",&myPhoton2,partList.c_str());
+    dataTree->Branch("Particle",&myPart,partList.c_str());
     
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
@@ -219,17 +194,10 @@ int main(int argc, char **argv)
         
 //       cout<<"Event "<<k+1<<endl;
         
+        memset(myKine,0,sizeof(myKine)); // init kinematics struct to zeros
+        memset(myPart,0,sizeof(myPart)); // init particle struct to zeros
+        
         if(nRows>0){
-            nEm = 0;
-      		myKine.nElec = 0;
-      		myKine.nPip = 0;
-	    	myKine.nPim = 0;
-	    	myKine.nGam = 0;
-	    	myKine.nProton = 0;
-            myKine.nNeutron = 0;
-            myKine.nKp = 0;
-            myKine.nKm = 0;
-            myKine.nPositron = 0;
             partIndex.clear(); // clear out the particle list
 	    	topology = false; // init. the event topology cut
 	    	for (j = 0; j < nRows; j++) {
@@ -250,23 +218,23 @@ int main(int argc, char **argv)
 //                if(tempPid == GetPID("Electron",kind)){
                 if(catPid.EqualTo("electron")){
                     myKine.nElec++;
-                    if(myKine.nElec>0 && myKine.nElec<=MAX_ELECTRONS) partIndex.push_back(j);
+                    partIndex.push_back(j);
                     ctr_nElec++;
                 }
                 if(catPid.EqualTo("high energy pion +") || catPid.EqualTo("low energy pion +") || catPid.EqualTo("pi+")){
 //                if(tempPid == GetPID("PiPlus",kind)){
                     myKine.nPip++;
-                    if(myKine.nPip>0 && myKine.nPip<=MAX_PIPLUS) partIndex.push_back(j);
+                    partIndex.push_back(j);
                 }
                 if(catPid.EqualTo("pi-")){
 //                if(tempPid == GetPID("PiMinus",kind)){
                     myKine.nPim++;
-                    if(myKine.nPim>0 && myKine.nPim<=MAX_PIMINUS) partIndex.push_back(j);
+                    partIndex.push_back(j);
                 }
                 if(catPid.EqualTo("gamma")){
 //                if(tempPid == GetPID("Photon",kind)){
                     myKine.nGam++;
-                    if(myKine.nGam>0 && myKine.nGam<=MAX_PHOTONS) partIndex.push_back(j);
+                    partIndex.push_back(j);
                 }
                 
                 if(tempPid == GetPID("Proton",kind)) myKine.nProton++;
@@ -276,7 +244,7 @@ int main(int argc, char **argv)
                 if(tempPid == GetPID("Positron",kind)) myKine.nPositron++;
             }
             
-	    	topology = (myKine.nElec>0 && myKine.nPip>0 && myKine.nPim>0 && myKine.nGam>=MAX_PHOTONS); // check event topology
+	    	topology = (myKine.nElec>MAX_ELECTRONS && myKine.nPip>=MAX_PIPLUS && myKine.nPim>=MAX_PIMINUS && myKine.nGam>=MAX_PHOTONS); // check event topology
 
 	    	if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
                 candCtr++;
@@ -298,94 +266,85 @@ int main(int argc, char **argv)
                     myKine.Zcorr = vert->Z();
                 }
 
-	    		photonCtr = 0;
+	    		pCtr = 0;  // initialize the partcle counter
+                myPart.pEvtNum = t -> NEvent();
+                myPart.nPart = partIndex.size(); // save the number of particles
         		while (!partIndex.empty()) {
 		    		i = partIndex.back(); // retrieve EVNT index for each particle
                     partIndex.pop_back(); // erase last entry in the list
 
-                    myPart.Sector = t->Sector(i,kind);
-                    myPart.Charge = t->Charge(i,kind);
-                    myPart.Beta = t->Betta(i,kind);
-                    myPart.Pid = t->Id(i,kind);
-                    myPart.Mom = t->Momentum(i,kind);
-                    myPart.Px = t->Px(i, kind);
-                    myPart.Py = t->Py(i, kind);
-                    myPart.Pz = t->Pz(i, kind);
-                    myPart.X = t->X(i, kind);
-                    myPart.Y = t->Y(i, kind);
-                    myPart.Z = t->Z(i, kind);
-                    myPart.Mass2 = t->Mass2(i,kind);
+                    myPart.Sector[pCtr] = t->Sector(i,kind);
+                    myPart.Charge[pCtr] = t->Charge(i,kind);
+                    myPart.Beta[pCtr] = t->Betta(i,kind);
+                    myPart.Pid[pCtr] = t->Id(i,kind);
+                    myPart.Mom[pCtr] = t->Momentum(i,kind);
+                    myPart.Px[pCtr] = t->Px(i, kind);
+                    myPart.Py[pCtr] = t->Py(i, kind);
+                    myPart.Pz[pCtr] = t->Pz(i, kind);
+                    myPart.X[pCtr] = t->X(i, kind);
+                    myPart.Y[pCtr] = t->Y(i, kind);
+                    myPart.Z[pCtr] = t->Z(i, kind);
+                    myPart.Mass2[pCtr] = t->Mass2(i,kind);
 
-                    myPart.ThetaPQ = t -> ThetaPQ(i, kind);
-                    myPart.PhiPQ = t -> PhiPQ(i, kind);
-                    myPart.Zh = t -> Zh(i, kind);
-                    myPart.Pt = TMath::Sqrt(t -> Pt2(i, kind));
-                    myPart.Mx2 = t -> Mx2(i, kind);
-                    myPart.Xf = t -> Xf(i, kind);
-        			myPart.T = t -> T(i, kind);
+                    myPart.ThetaPQ[pCtr] = t -> ThetaPQ(i, kind);
+                    myPart.PhiPQ[pCtr] = t -> PhiPQ(i, kind);
+                    myPart.Zh[pCtr] = t -> Zh(i, kind);
+                    myPart.Pt[pCtr] = TMath::Sqrt(t -> Pt2(i, kind));
+                    myPart.Mx2[pCtr] = t -> Mx2(i, kind);
+                    myPart.Xf[pCtr] = t -> Xf(i, kind);
+        			myPart.T[pCtr] = t -> T(i, kind);
 
                     // initialize detector info
-                    myPart.ECtot = 0;
-                    myPart.ECin = 0;
-                    myPart.ECout = 0;
-                    myPart.ECx = 0;
-                    myPart.ECy = 0;
-                    myPart.ECz = 0;
-                    myPart.ECu = 0;
-                    myPart.ECv = 0;
-                    myPart.ECw = 0;
-                    myPart.ECtime = 0;
-                    myPart.ECpath = 0;
-                    myPart.EChit_M2 = 0;
-                    myPart.EChit_M3 = 0;
-                    myPart.EChit_M4 = 0;
-			        myPart.Chi2EC = 0;
-                    myPart.SCtime = 0;
-                    myPart.SCpath = 0;
-                    myPart.CCnphe = 0;
-                    myPart.TimeCorr4 = 0;
+                    myPart[pCtr].ECtot = 0;
+                    myPart[pCtr].ECin = 0;
+                    myPart[pCtr].ECout = 0;
+                    myPart[pCtr].ECx = 0;
+                    myPart[pCtr].ECy = 0;
+                    myPart[pCtr].ECz = 0;
+                    myPart[pCtr].ECu = 0;
+                    myPart[pCtr].ECv = 0;
+                    myPart[pCtr].ECw = 0;
+                    myPart[pCtr].ECtime = 0;
+                    myPart[pCtr].ECpath = 0;
+                    myPart[pCtr].EChit_M2 = 0;
+                    myPart[pCtr].EChit_M3 = 0;
+                    myPart[pCtr].EChit_M4 = 0;
+			        myPart[pCtr].Chi2EC = 0;
+                    myPart[pCtr].SCtime = 0;
+                    myPart[pCtr].SCpath = 0;
+                    myPart[pCtr].CCnphe = 0;
+                    myPart[pCtr].TimeCorr4 = 0;
                     
                     if(simul_key == false){
-                        myPart.ECtot = TMath::Max(t->Etot(i),t->Ein(i)+t->Eout(i));
-                        myPart.ECin = t->Ein(i);
-                        myPart.ECout = t->Eout(i);
-                        myPart.ECx = t->XEC(i);
-                        myPart.ECy = t->YEC(i);
-                        myPart.ECz = t->ZEC(i);
+                        myPart.ECtot[pCtr] = TMath::Max(t->Etot(i),t->Ein(i)+t->Eout(i));
+                        myPart.ECin[pCtr] = t->Ein(i);
+                        myPart.ECout[pCtr] = t->Eout(i);
+                        myPart.ECx[pCtr] = t->XEC(i);
+                        myPart.ECy[pCtr] = t->YEC(i);
+                        myPart.ECz[pCtr] = t->ZEC(i);
                         ECxyz->SetXYZ(t->XEC(i),t->YEC(i),t->ZEC(i));
                         ECuvw = t->XYZToUVW(ECxyz);
-                        myPart.ECu = ECuvw->X();
-                        myPart.ECv = ECuvw->Y();
-                        myPart.ECw = ECuvw->Z();
- 				        myPart.ECtime = t->TimeEC(i);
-                        myPart.ECpath = t->PathEC(i);
-                        myPart.EChit_M2 = t->EChit_Moment2(i);
-                        myPart.EChit_M3 = t->EChit_Moment3(i);
-                        myPart.EChit_M4 = t->EChit_Moment4(i);
-                        myPart.Chi2EC = t->Chi2EC(i);
+                        myPart.ECu[pCtr] = ECuvw->X();
+                        myPart.ECv[pCtr] = ECuvw->Y();
+                        myPart.ECw[pCtr] = ECuvw->Z();
+ 				        myPart.ECtime[pCtr] = t->TimeEC(i);
+                        myPart.ECpath[pCtr] = t->PathEC(i);
+                        myPart.EChit_M2[pCtr] = t->EChit_Moment2(i);
+                        myPart.EChit_M3[pCtr] = t->EChit_Moment3(i);
+                        myPart.EChit_M4[pCtr] = t->EChit_Moment4(i);
+                        myPart.Chi2EC[pCtr] = t->Chi2EC(i);
 
-                        myPart.SCtime = t->TimeSC(i);
-                        myPart.SCpath = t->PathSC(i);
+                        myPart.SCtime[pCtr] = t->TimeSC(i);
+                        myPart.SCpath[pCtr] = t->PathSC(i);
 
-                        myPart.CCnphe = t->Nphe(i);
+                        myPart.CCnphe[pCtr] = t->Nphe(i);
 
-                        if(myPart.Pid == GetPID("Electron",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.000511,i);
-                        if(myPart.Pid == GetPID("PiPlus",kind)) myPart.TimeCorr4 = t -> TimeCorr4(kMassPi_plus,i);
-                        if(myPart.Pid == GetPID("PiMinus",kind)) myPart.TimeCorr4 = t -> TimeCorr4(kMassPi_min,i);
-                        if(myPart.Pid == GetPID("Photon",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.0,i);
+                        if(myPart.Pid == GetPID("Electron",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(0.000511,i);
+                        if(myPart.Pid == GetPID("PiPlus",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(kMassPi_plus,i);
+                        if(myPart.Pid == GetPID("PiMinus",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(kMassPi_min,i);
+                        if(myPart.Pid == GetPID("Photon",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(0.0,i);
                     }
-
-                    if(myPart.Pid == GetPID("Electron",kind)){
-                        nEm++;
-                        myElec1 = myPart;
-                    }
-                    if(myPart.Pid == GetPID("PiPlus",kind)) myPip = myPart;
-                    if(myPart.Pid == GetPID("PiMinus",kind)) myPim = myPart;
-                    if(myPart.Pid == GetPID("Photon",kind)){
-                        photonCtr++;
-                        if(photonCtr==1) myPhoton1 = myPart;
-                        if(photonCtr==2) myPhoton2 = myPart;
-                    }
+                    pCtr++;
                 }
                 dataTree->Fill();
             }
