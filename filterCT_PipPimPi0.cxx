@@ -194,8 +194,8 @@ int main(int argc, char **argv)
         
 //       cout<<"Event "<<k+1<<endl;
         
-        memset(myKine,0,sizeof(myKine)); // init kinematics struct to zeros
-        memset(myPart,0,sizeof(myPart)); // init particle struct to zeros
+        memset(&myKine,0,sizeof(myKine)); // init kinematics struct to zeros
+        memset(&myPart,0,sizeof(myPart)); // init particle struct to zeros
         
         if(nRows>0){
             partIndex.clear(); // clear out the particle list
@@ -318,10 +318,10 @@ int main(int argc, char **argv)
 
                         myPart.CCnphe[pCtr] = t->Nphe(i);
 
-                        if(myPart.Pid == GetPID("Electron",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(0.000511,i);
-                        if(myPart.Pid == GetPID("PiPlus",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(kMassPi_plus,i);
-                        if(myPart.Pid == GetPID("PiMinus",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(kMassPi_min,i);
-                        if(myPart.Pid == GetPID("Photon",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(0.0,i);
+                        if(myPart.Pid[pCtr] == GetPID("Electron",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(0.000511,i);
+                        if(myPart.Pid[pCtr] == GetPID("PiPlus",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(kMassPi_plus,i);
+                        if(myPart.Pid[pCtr] == GetPID("PiMinus",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(kMassPi_min,i);
+                        if(myPart.Pid[pCtr] == GetPID("Photon",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(0.0,i);
                     }
                     pCtr++;
                 }
