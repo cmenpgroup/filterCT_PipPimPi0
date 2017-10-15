@@ -57,11 +57,11 @@ typedef struct{
 } KINEVAR;
 
 typedef struct{
-    float pEvtNum;
+    Float_t pEvtNum;
     int nPart;
     int Sector[MAX_PART];
-    float Charge[MAX_PART], Pid[MAX_PART], Beta[MAX_PART];
-    float Px[MAX_PART], Py[MAX_PART], Pz[MAX_PART], Mom[MAX_PART], Mass2[MAX_PART];
+    Float_t Charge[MAX_PART], Pid[MAX_PART], Beta[MAX_PART];
+    Float_t Px[MAX_PART], Py[MAX_PART], Pz[MAX_PART], Mom[MAX_PART], Mass2[MAX_PART];
     float X[MAX_PART], Y[MAX_PART], Z[MAX_PART];
     float ECx[MAX_PART], ECy[MAX_PART], ECz[MAX_PART], ECu[MAX_PART], ECv[MAX_PART], ECw[MAX_PART];
     float ECtot[MAX_PART], ECin[MAX_PART], ECout[MAX_PART], ECtime[MAX_PART], ECpath[MAX_PART];
