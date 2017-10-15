@@ -293,27 +293,6 @@ int main(int argc, char **argv)
                     myPart.Mx2[pCtr] = t -> Mx2(i, kind);
                     myPart.Xf[pCtr] = t -> Xf(i, kind);
         			myPart.T[pCtr] = t -> T(i, kind);
-
-                    // initialize detector info
-                    myPart[pCtr].ECtot = 0;
-                    myPart[pCtr].ECin = 0;
-                    myPart[pCtr].ECout = 0;
-                    myPart[pCtr].ECx = 0;
-                    myPart[pCtr].ECy = 0;
-                    myPart[pCtr].ECz = 0;
-                    myPart[pCtr].ECu = 0;
-                    myPart[pCtr].ECv = 0;
-                    myPart[pCtr].ECw = 0;
-                    myPart[pCtr].ECtime = 0;
-                    myPart[pCtr].ECpath = 0;
-                    myPart[pCtr].EChit_M2 = 0;
-                    myPart[pCtr].EChit_M3 = 0;
-                    myPart[pCtr].EChit_M4 = 0;
-			        myPart[pCtr].Chi2EC = 0;
-                    myPart[pCtr].SCtime = 0;
-                    myPart[pCtr].SCpath = 0;
-                    myPart[pCtr].CCnphe = 0;
-                    myPart[pCtr].TimeCorr4 = 0;
                     
                     if(simul_key == false){
                         myPart.ECtot[pCtr] = TMath::Max(t->Etot(i),t->Ein(i)+t->Eout(i));
