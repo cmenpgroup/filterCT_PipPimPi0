@@ -43,7 +43,7 @@ using namespace std;
 
 #define EBEAM 5.015  // e- beam energy in GeV
 
-#define MAX_PART 50 // max number of particles in each event
+#define MAX_PART 15 // max number of particles in each event
 
 //declarations of functions
 void PrintAnalysisTime(float tStart, float tStop);
