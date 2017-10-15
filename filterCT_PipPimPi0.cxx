@@ -60,7 +60,7 @@ typedef struct{
     Float_t pEvtNum;
     int nPart;
     int Sector[MAX_PART];
-    int Charge[MAX_PART];
+    float Charge[MAX_PART];
     float Pid[MAX_PART], Beta[MAX_PART];
     float Px[MAX_PART], Py[MAX_PART], Pz[MAX_PART], Mom[MAX_PART], Mass2[MAX_PART];
     float X[MAX_PART], Y[MAX_PART], Z[MAX_PART];
@@ -149,13 +149,16 @@ int main(int argc, char **argv)
     
     string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I:nProton/I:nNeutron/I:nKp/I:nKm/I:nPositron/I";
  
-    string partList = "pEvtNum/F:nPart/I:Charge[nPart]/I:Sector[nPart]/I:Pid[nPart]/F:Beta[nPart]/F:Px[nPart]/F:Py[nPart]/F:Pz[nPart]/F:Mom[nPart]/F:Mass2[nPart]/F:X[nPart]/F:Y[nPart]/F:Z[nPart]/F:ECx[nPart]/F:ECy[nPart]/F:ECz[nPart]/F:ECu[nPart]/F:ECv[nPart]/F:ECw[nPart]/F:ECtot[nPart]/F:ECin[nPart]/F:ECout[nPart]/F:ECtime[nPart]/F:ECpath[nPart]/F:EChit_M2[nPart]/F:EChit_M3[nPart]/F:EChit_M4[nPart]/F:Chi2EC[nPart]/F:SCpath[nPart]/F:SCtime[nPart]/F:CCnphe[nPart]/F:T[nPart]/F:Xf[nPart]/F:Mx2[nPart]/F:Pt[nPart]/F:Zh[nPart]/F:ThetaPQ[nPart]/F:PhiPQ[nPart]/F:TimeCorr4[nPart]/F";
+    string partList = "pEvtNum/F:nPart/I:Charge[nPart]/F:Sector[nPart]/I:Pid[nPart]/F:Beta[nPart]/F:Px[nPart]/F:Py[nPart]/F:Pz[nPart]/F:Mom[nPart]/F:Mass2[nPart]/F:X[nPart]/F:Y[nPart]/F:Z[nPart]/F:ECx[nPart]/F:ECy[nPart]/F:ECz[nPart]/F:ECu[nPart]/F:ECv[nPart]/F:ECw[nPart]/F:ECtot[nPart]/F:ECin[nPart]/F:ECout[nPart]/F:ECtime[nPart]/F:ECpath[nPart]/F:EChit_M2[nPart]/F:EChit_M3[nPart]/F:EChit_M4[nPart]/F:Chi2EC[nPart]/F:SCpath[nPart]/F:SCtime[nPart]/F:CCnphe[nPart]/F:T[nPart]/F:Xf[nPart]/F:Mx2[nPart]/F:Pt[nPart]/F:Zh[nPart]/F:ThetaPQ[nPart]/F:PhiPQ[nPart]/F:TimeCorr4[nPart]/F";
     KINEVAR myKine;
     PARTVAR myPart;
     
     TTree *dataTree = new TTree("Data","Experimental Data Tree");
     dataTree->Branch("Kinematics",&myKine,kineList.c_str());
     dataTree->Branch("Particle",&myPart,partList.c_str());
+    dataTree->Branch("nPart",&myPart.nPart,"nPart/I");
+    dataTree->Branch("Sector",&myPart.Sector,"Sector[nPart]/I");
+    dataTree->Branch("Charge",&myPart.Charge,"Charge[nPart]/F");
     
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
@@ -275,7 +278,7 @@ int main(int argc, char **argv)
                     partIndex.pop_back(); // erase last entry in the list
 
                     myPart.Sector[pCtr] = t->Sector(i,kind);
-                    myPart.Charge[pCtr] = (int)t->Charge(i,kind);
+                    myPart.Charge[pCtr] = t->Charge(i,kind);
                     myPart.Beta[pCtr] = t->Betta(i,kind);
                     myPart.Pid[pCtr] = t->Id(i,kind);
                     myPart.Mom[pCtr] = t->Momentum(i,kind);
