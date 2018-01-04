@@ -62,9 +62,9 @@ typedef struct{
     Float_t pEvtNum;
     int nPart;
     int Sector[MAX_PART];
-    Float_t Charge[MAX_PART];
-    float Pid[MAX_PART], Beta[MAX_PART];
-    float Px[MAX_PART], Py[MAX_PART], Pz[MAX_PART], Mom[MAX_PART], Mass2[MAX_PART];
+    Double_t Charge[MAX_PART];
+    Double_t Pid[MAX_PART], Beta[MAX_PART];
+    Double_t Px[MAX_PART], Py[MAX_PART], Pz[MAX_PART], Mom[MAX_PART], Mass2[MAX_PART];
     float X[MAX_PART], Y[MAX_PART], Z[MAX_PART];
     float ECx[MAX_PART], ECy[MAX_PART], ECz[MAX_PART], ECu[MAX_PART], ECv[MAX_PART], ECw[MAX_PART];
     float ECtot[MAX_PART], ECin[MAX_PART], ECout[MAX_PART], ECtime[MAX_PART], ECpath[MAX_PART];
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
     
     string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I:nProton/I:nNeutron/I:nKp/I:nKm/I:nPositron/I";
  
-    string partList = "pEvtNum/F:nPart/I:Charge[nPart]/F:Sector[nPart]/I:Pid[nPart]/F:Beta[nPart]/F:Px[nPart]/F:Py[nPart]/F:Pz[nPart]/F:Mom[nPart]/F:Mass2[nPart]/F:X[nPart]/F:Y[nPart]/F:Z[nPart]/F:ECx[nPart]/F:ECy[nPart]/F:ECz[nPart]/F:ECu[nPart]/F:ECv[nPart]/F:ECw[nPart]/F:ECtot[nPart]/F:ECin[nPart]/F:ECout[nPart]/F:ECtime[nPart]/F:ECpath[nPart]/F:EChit_M2[nPart]/F:EChit_M3[nPart]/F:EChit_M4[nPart]/F:Chi2EC[nPart]/F:SCpath[nPart]/F:SCtime[nPart]/F:CCnphe[nPart]/F:T[nPart]/F:Xf[nPart]/F:Mx2[nPart]/F:Pt[nPart]/F:Zh[nPart]/F:ThetaPQ[nPart]/F:PhiPQ[nPart]/F:TimeCorr4[nPart]/F";
+    string partList = "pEvtNum/F:nPart/I:Charge[nPart]/D:Sector[nPart]/I:Pid[nPart]/D:Beta[nPart]/D:Px[nPart]/D:Py[nPart]/D:Pz[nPart]/D:Mom[nPart]/D:Mass2[nPart]/D:X[nPart]/F:Y[nPart]/F:Z[nPart]/F:ECx[nPart]/F:ECy[nPart]/F:ECz[nPart]/F:ECu[nPart]/F:ECv[nPart]/F:ECw[nPart]/F:ECtot[nPart]/F:ECin[nPart]/F:ECout[nPart]/F:ECtime[nPart]/F:ECpath[nPart]/F:EChit_M2[nPart]/F:EChit_M3[nPart]/F:EChit_M4[nPart]/F:Chi2EC[nPart]/F:SCpath[nPart]/F:SCtime[nPart]/F:CCnphe[nPart]/F:T[nPart]/F:Xf[nPart]/F:Mx2[nPart]/F:Pt[nPart]/F:Zh[nPart]/F:ThetaPQ[nPart]/F:PhiPQ[nPart]/F:TimeCorr4[nPart]/F";
     KINEVAR myKine;
     PARTVAR myPart;
     
@@ -165,7 +165,19 @@ int main(int argc, char **argv)
     vector<int> vSector;
     dataTree->Branch("vSector",&vSector);
     std::vector<Double_t> vCharge;
+    std::vector<Double_t> vPid;
+    std::vector<Double_t> vBeta;
+    std::vector<Double_t> vPx;
+    std::vector<Double_t> vPy;
+    std::vector<Double_t> vPz;
+    std::vector<Double_t> vMom;
     dataTree->Branch("vCharge",&vCharge);
+    dataTree->Branch("vPid",&vPid);
+    dataTree->Branch("vBeta",&vBeta);
+    dataTree->Branch("vPx",&vPx);
+    dataTree->Branch("vPy",&vPy);
+    dataTree->Branch("vPz",&vPz);
+    dataTree->Branch("vMom",&vMom);
     
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
@@ -209,6 +221,12 @@ int main(int argc, char **argv)
         memset(&myPart,0,sizeof(myPart)); // init particle struct to zeros
         vSector.clear();
         vCharge.clear();
+        vPid.clear();
+        vBeta.clear();
+        vPx.clear();
+        vPy.clear();
+        vPz.clear();
+        vMom.clear();
         
         if(nRows>0){
             partIndex.clear(); // clear out the particle list
@@ -288,6 +306,12 @@ int main(int argc, char **argv)
 
                     vSector.push_back(t->Sector(i,kind));
                     vCharge.push_back(t->Charge(i,kind));
+                    vBeta.push_back(t->Betta(i,kind));
+                    vPid.push_back(t->Id(i,kind));
+                    vMom.push_back(t->Momentum(i,kind));
+                    vPx.push_back(t->Px(i, kind));
+                    vPy.push_back(t->Py(i, kind));
+                    vPz.push_back(t->Pz(i, kind));
                     
                     myPart.Sector[pCtr] = t->Sector(i,kind);
                     myPart.Charge[pCtr] = t->Charge(i,kind);
