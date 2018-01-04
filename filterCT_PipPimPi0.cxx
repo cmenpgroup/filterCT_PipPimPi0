@@ -60,7 +60,7 @@ typedef struct{
     Float_t pEvtNum;
     int nPart;
     int Sector[MAX_PART];
-    float Charge[MAX_PART];
+    Float_t Charge[MAX_PART];
     float Pid[MAX_PART], Beta[MAX_PART];
     float Px[MAX_PART], Py[MAX_PART], Pz[MAX_PART], Mom[MAX_PART], Mass2[MAX_PART];
     float X[MAX_PART], Y[MAX_PART], Z[MAX_PART];
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 
     vector<int> vSector;
     dataTree->Branch("vSector",&vSector);
-    vector<float> vCharge;
+    vector<Float_t> vCharge;
     dataTree->Branch("vCharge",&vCharge);
     
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
