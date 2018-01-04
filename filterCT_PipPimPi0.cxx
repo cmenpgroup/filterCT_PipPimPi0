@@ -12,6 +12,8 @@
 #include "massConst.h"
 using namespace std;
 
+#pragma link C++ class vector<float>+;
+
 #define MAX_ELECTRONS 1
 #define MAX_PIPLUS 1
 #define MAX_PIMINUS 1
