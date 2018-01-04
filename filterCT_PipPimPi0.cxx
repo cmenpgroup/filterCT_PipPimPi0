@@ -159,6 +159,9 @@ int main(int argc, char **argv)
     dataTree->Branch("nPart",&myPart.nPart,"nPart/I");
     dataTree->Branch("Sector",&myPart.Sector,"Sector[nPart]/I");
     dataTree->Branch("Charge",&myPart.Charge,"Charge[nPart]/F");
+
+    vector<int> vSector;
+    dataTree->Branch("vSector",&vSector);
     
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
@@ -200,6 +203,7 @@ int main(int argc, char **argv)
         
         memset(&myKine,0,sizeof(myKine)); // init kinematics struct to zeros
         memset(&myPart,0,sizeof(myPart)); // init particle struct to zeros
+        vSector.clear();
         
         if(nRows>0){
             partIndex.clear(); // clear out the particle list
@@ -277,6 +281,7 @@ int main(int argc, char **argv)
 		    		i = partIndex.back(); // retrieve EVNT index for each particle
                     partIndex.pop_back(); // erase last entry in the list
 
+                    vSector.push_back(t->Sector(i,kind));
                     myPart.Sector[pCtr] = t->Sector(i,kind);
                     myPart.Charge[pCtr] = t->Charge(i,kind);
                     myPart.Beta[pCtr] = t->Betta(i,kind);
