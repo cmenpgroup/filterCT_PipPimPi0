@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 
     vector<int> vSector;
     dataTree->Branch("vSector",&vSector);
-    std::vector<float> vCharge;
+    std::vector<Double_t> vCharge;
     dataTree->Branch("vCharge",&vCharge);
     
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
