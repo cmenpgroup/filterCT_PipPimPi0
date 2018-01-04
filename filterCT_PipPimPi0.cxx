@@ -171,14 +171,21 @@ int main(int argc, char **argv)
     std::vector<Double_t> vPy;
     std::vector<Double_t> vPz;
     std::vector<Double_t> vMom;
-    dataTree->Branch("vCharge",&vCharge);
+    dataTree->Branch("vParticles",&vCharge);
+    dataTree->Branch("vParticles",&vPid);
+    dataTree->Branch("vParticles",&vBeta);
+    dataTree->Branch("vParticles",&vPx);
+    dataTree->Branch("vParticles",&vPy);
+    dataTree->Branch("vParticles",&vPz);
+    dataTree->Branch("vParticles",&vMom);
+/*    dataTree->Branch("vCharge",&vCharge);
     dataTree->Branch("vPid",&vPid);
     dataTree->Branch("vBeta",&vBeta);
     dataTree->Branch("vPx",&vPx);
     dataTree->Branch("vPy",&vPy);
     dataTree->Branch("vPz",&vPz);
     dataTree->Branch("vMom",&vMom);
-    
+*/
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
     for (i = optind; i < argc; ++i) {
