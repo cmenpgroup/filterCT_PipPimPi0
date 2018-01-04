@@ -162,6 +162,8 @@ int main(int argc, char **argv)
 
     vector<int> vSector;
     dataTree->Branch("vSector",&vSector);
+    vector<float> vCharge;
+    dataTree->Branch("vCharge",&vCharge);
     
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
@@ -204,6 +206,7 @@ int main(int argc, char **argv)
         memset(&myKine,0,sizeof(myKine)); // init kinematics struct to zeros
         memset(&myPart,0,sizeof(myPart)); // init particle struct to zeros
         vSector.clear();
+        vCharge.clear();
         
         if(nRows>0){
             partIndex.clear(); // clear out the particle list
@@ -282,6 +285,8 @@ int main(int argc, char **argv)
                     partIndex.pop_back(); // erase last entry in the list
 
                     vSector.push_back(t->Sector(i,kind));
+                    vCharge.push_back(t->Charge(i,kind));
+                    
                     myPart.Sector[pCtr] = t->Sector(i,kind);
                     myPart.Charge[pCtr] = t->Charge(i,kind);
                     myPart.Beta[pCtr] = t->Betta(i,kind);
