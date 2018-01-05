@@ -175,9 +175,11 @@ int main(int argc, char **argv)
     TTree *dataTree = new TTree("Data","Experimental Data Tree");
     dataTree->Branch("Kinematics",&myKine,kineList.c_str());
 
-    dataTree->Branch("Sector",&Sector);
-    dataTree->Branch("Charge",&Charge);
-    dataTree->Branch("Pid",&Pid);
+    dataTree->Branch("Particles","pEvtNum",&pEvtNum);
+    dataTree->Branch("Partilces","nPart",&nPart);
+    dataTree->Branch("Particles","Sector",&Sector);
+    dataTree->Branch("Particles","Charge",&Charge);
+    dataTree->Branch("Particles","Pid",&Pid);
     dataTree->Branch("Beta",&Beta);
     dataTree->Branch("Px",&Px);
     dataTree->Branch("Py",&Py);
