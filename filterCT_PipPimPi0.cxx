@@ -43,8 +43,6 @@ using namespace std;
 
 #define EBEAM 5.015  // e- beam energy in GeV
 
-#define MAX_PART 15 // max number of particles in each event
-
 //declarations of functions
 void PrintAnalysisTime(float tStart, float tStop);
 void PrintUsage(char *processName);
@@ -56,22 +54,6 @@ typedef struct{
     Int_t nElec, nPip, nPim, nGam, nProton, nNeutron, nKp, nKm, nPositron;
 } KINEVAR;
 
-typedef struct{
-    Float_t pEvtNum;
-    int nPart;
-    int Sector[MAX_PART];
-    Double_t Charge[MAX_PART];
-    Double_t Pid[MAX_PART], Beta[MAX_PART];
-    Double_t Px[MAX_PART], Py[MAX_PART], Pz[MAX_PART], Mom[MAX_PART], Mass2[MAX_PART];
-    float X[MAX_PART], Y[MAX_PART], Z[MAX_PART];
-    float ECx[MAX_PART], ECy[MAX_PART], ECz[MAX_PART], ECu[MAX_PART], ECv[MAX_PART], ECw[MAX_PART];
-    float ECtot[MAX_PART], ECin[MAX_PART], ECout[MAX_PART], ECtime[MAX_PART], ECpath[MAX_PART];
-    float EChit_M2[MAX_PART], EChit_M3[MAX_PART], EChit_M4[MAX_PART], Chi2EC[MAX_PART];
-    float SCpath[MAX_PART], SCtime[MAX_PART];
-    float CCnphe[MAX_PART];
-    float T[MAX_PART], Xf[MAX_PART], Mx2[MAX_PART], Pt[MAX_PART], Zh[MAX_PART], ThetaPQ[MAX_PART], PhiPQ[MAX_PART], TimeCorr4[MAX_PART];
-} PARTVAR;
-
 int main(int argc, char **argv)
 {
     extern char *optarg;
@@ -80,7 +62,6 @@ int main(int argc, char **argv)
     
     int i, j, k;
     int nRows, kind, tempPid;
-    int pCtr;
     int candCtr = 0;
     int ctr_nElec = 0;
     int dEvents = 1000; // increment of events for processing print statement
@@ -146,96 +127,92 @@ int main(int argc, char **argv)
         default: cout<<"Unknown target "<<target<<endl; exit(0); break;
     }
     cout<<"Analyzing " << target << " target data"<<endl;
+  
+    std::vector<int> pEvtNum;
+    std::vector<int> nPart;
+    std::vector<int> Sector;
+    std::vector<Double_t> Charge;
+    std::vector<Double_t> Pid;
+    std::vector<Double_t> Beta;
+    std::vector<Double_t> Px;
+    std::vector<Double_t> Py;
+    std::vector<Double_t> Pz;
+    std::vector<Double_t> Mom;
+    std::vector<Double_t> Mass2;
+    std::vector<Double_t> X;
+    std::vector<Double_t> Y;
+    std::vector<Double_t> Z;
+    std::vector<Double_t> ECx;
+    std::vector<Double_t> ECy;
+    std::vector<Double_t> ECz;
+    std::vector<Double_t> ECu;
+    std::vector<Double_t> ECv;
+    std::vector<Double_t> ECw;
+    std::vector<Double_t> ECtot;
+    std::vector<Double_t> ECin;
+    std::vector<Double_t> ECout;
+    std::vector<Double_t> ECtime;
+    std::vector<Double_t> ECpath;
+    std::vector<Double_t> EChit_M2;
+    std::vector<Double_t> EChit_M3;
+    std::vector<Double_t> EChit_M4;
+    std::vector<Double_t> Chi2EC;
+    std::vector<Double_t> SCpath;
+    std::vector<Double_t> SCtime;
+    std::vector<Double_t> CCnphe;
+    std::vector<Double_t> T;
+    std::vector<Double_t> Xf;
+    std::vector<Double_t> Mx2;
+    std::vector<Double_t> Pt;
+    std::vector<Double_t> Zh;
+    std::vector<Double_t> ThetaPQ;
+    std::vector<Double_t> PhiPQ;
+    std::vector<Double_t> TimeCorr4;
     
     string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I:nProton/I:nNeutron/I:nKp/I:nKm/I:nPositron/I";
- 
-    string partList = "pEvtNum/F:nPart/I:Charge[nPart]/D:Sector[nPart]/I:Pid[nPart]/D:Beta[nPart]/D:Px[nPart]/D:Py[nPart]/D:Pz[nPart]/D:Mom[nPart]/D:Mass2[nPart]/D:X[nPart]/F:Y[nPart]/F:Z[nPart]/F:ECx[nPart]/F:ECy[nPart]/F:ECz[nPart]/F:ECu[nPart]/F:ECv[nPart]/F:ECw[nPart]/F:ECtot[nPart]/F:ECin[nPart]/F:ECout[nPart]/F:ECtime[nPart]/F:ECpath[nPart]/F:EChit_M2[nPart]/F:EChit_M3[nPart]/F:EChit_M4[nPart]/F:Chi2EC[nPart]/F:SCpath[nPart]/F:SCtime[nPart]/F:CCnphe[nPart]/F:T[nPart]/F:Xf[nPart]/F:Mx2[nPart]/F:Pt[nPart]/F:Zh[nPart]/F:ThetaPQ[nPart]/F:PhiPQ[nPart]/F:TimeCorr4[nPart]/F";
     KINEVAR myKine;
-    PARTVAR myPart;
     
     TTree *dataTree = new TTree("Data","Experimental Data Tree");
     dataTree->Branch("Kinematics",&myKine,kineList.c_str());
-    dataTree->Branch("Particle",&myPart,partList.c_str());
-    dataTree->Branch("nPart",&myPart.nPart,"nPart/I");
-    dataTree->Branch("Sector",&myPart.Sector,"Sector[nPart]/I");
-    dataTree->Branch("Charge",&myPart.Charge,"Charge[nPart]/F");
 
-    vector<int> vSector;
-    dataTree->Branch("vSector",&vSector);
-    std::vector<Double_t> vCharge;
-    std::vector<Double_t> vPid;
-    std::vector<Double_t> vBeta;
-    std::vector<Double_t> vPx;
-    std::vector<Double_t> vPy;
-    std::vector<Double_t> vPz;
-    std::vector<Double_t> vMom;
-    std::vector<Double_t> vMass2;
-    std::vector<Double_t> vX;
-    std::vector<Double_t> vY;
-    std::vector<Double_t> vZ;
-    std::vector<Double_t> vECx;
-    std::vector<Double_t> vECy;
-    std::vector<Double_t> vECz;
-    std::vector<Double_t> vECu;
-    std::vector<Double_t> vECv;
-    std::vector<Double_t> vECw;
-    std::vector<Double_t> vECtot;
-    std::vector<Double_t> vECin;
-    std::vector<Double_t> vECout;
-    std::vector<Double_t> vECtime;
-    std::vector<Double_t> vECpath;
-    std::vector<Double_t> vEChit_M2;
-    std::vector<Double_t> vEChit_M3;
-    std::vector<Double_t> vEChit_M4;
-    std::vector<Double_t> vChi2EC;
-    std::vector<Double_t> vSCpath;
-    std::vector<Double_t> vSCtime;
-    std::vector<Double_t> vCCnphe;
-    std::vector<Double_t> vT;
-    std::vector<Double_t> vXf;
-    std::vector<Double_t> vMx2;
-    std::vector<Double_t> vPt;
-    std::vector<Double_t> vZh;
-    std::vector<Double_t> vThetaPQ;
-    std::vector<Double_t> vPhiPQ;
-    std::vector<Double_t> vTimeCorr4;
-    dataTree->Branch("vCharge",&vCharge);
-    dataTree->Branch("vPid",&vPid);
-    dataTree->Branch("vBeta",&vBeta);
-    dataTree->Branch("vPx",&vPx);
-    dataTree->Branch("vPy",&vPy);
-    dataTree->Branch("vPz",&vPz);
-    dataTree->Branch("vMom",&vMom);
-    dataTree->Branch("vMass2",&vMass2);
-    dataTree->Branch("vX",&vX);
-    dataTree->Branch("vY",&vY);
-    dataTree->Branch("vZ",&vZ);
-    dataTree->Branch("vECx",&vECx);
-    dataTree->Branch("vECy",&vECy);
-    dataTree->Branch("vECz",&vECz);
-    dataTree->Branch("vECu",&vECu);
-    dataTree->Branch("vECv",&vECv);
-    dataTree->Branch("vECw",&vECw);
-    dataTree->Branch("vECtot",&vECtot);
-    dataTree->Branch("vECin",&vECin);
-    dataTree->Branch("vECout",&vECout);
-    dataTree->Branch("vECtime",&vECtime);
-    dataTree->Branch("vECpath",&vECpath);
-    dataTree->Branch("vEChit_M2",&vEChit_M2);
-    dataTree->Branch("vEChit_M3",&vEChit_M3),
-    dataTree->Branch("vEChit_M4",&vEChit_M4);
-    dataTree->Branch("vChi2EC",&vChi2EC);
-    dataTree->Branch("vSCpath",&vSCpath);
-    dataTree->Branch("vSCtime",&vSCtime);
-    dataTree->Branch("vCCnphe",&vCCnphe);
-    dataTree->Branch("vT",&vT);
-    dataTree->Branch("vXf",&vXf);
-    dataTree->Branch("vMx2",&vMx2);
-    dataTree->Branch("vPt",&vPt);
-    dataTree->Branch("vZh",&vZh);
-    dataTree->Branch("vThetaPQ",&vThetaPQ);
-    dataTree->Branch("vPhiPQ",&vPhiPQ);
-    dataTree->Branch("vTimeCorr4",&vTimeCorr4);
+    dataTree->Branch("Sector",&Sector);
+    dataTree->Branch("Charge",&Charge);
+    dataTree->Branch("Pid",&Pid);
+    dataTree->Branch("Beta",&Beta);
+    dataTree->Branch("Px",&Px);
+    dataTree->Branch("Py",&Py);
+    dataTree->Branch("Pz",&Pz);
+    dataTree->Branch("Mom",&Mom);
+    dataTree->Branch("Mass2",&Mass2);
+    dataTree->Branch("X",&X);
+    dataTree->Branch("Y",&Y);
+    dataTree->Branch("Z",&Z);
+    dataTree->Branch("ECx",&ECx);
+    dataTree->Branch("ECy",&ECy);
+    dataTree->Branch("ECz",&ECz);
+    dataTree->Branch("ECu",&ECu);
+    dataTree->Branch("ECv",&ECv);
+    dataTree->Branch("ECw",&ECw);
+    dataTree->Branch("ECtot",&ECtot);
+    dataTree->Branch("ECin",&ECin);
+    dataTree->Branch("ECout",&ECout);
+    dataTree->Branch("ECtime",&ECtime);
+    dataTree->Branch("ECpath",&ECpath);
+    dataTree->Branch("EChit_M2",&EChit_M2);
+    dataTree->Branch("EChit_M3",&EChit_M3),
+    dataTree->Branch("EChit_M4",&EChit_M4);
+    dataTree->Branch("Chi2EC",&Chi2EC);
+    dataTree->Branch("SCpath",&SCpath);
+    dataTree->Branch("SCtime",&SCtime);
+    dataTree->Branch("CCnphe",&CCnphe);
+    dataTree->Branch("T",&T);
+    dataTree->Branch("Xf",&Xf);
+    dataTree->Branch("Mx2",&Mx2);
+    dataTree->Branch("Pt",&Pt);
+    dataTree->Branch("Zh",&Zh);
+    dataTree->Branch("ThetaPQ",&ThetaPQ);
+    dataTree->Branch("PhiPQ",&PhiPQ);
+    dataTree->Branch("TimeCorr4",&TimeCorr4);
 
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
@@ -273,48 +250,47 @@ int main(int argc, char **argv)
             nRows = input->GetNRows("EVNT");
         }
         
-//       cout<<"Event "<<k+1<<endl;
-        
         memset(&myKine,0,sizeof(myKine)); // init kinematics struct to zeros
-        memset(&myPart,0,sizeof(myPart)); // init particle struct to zeros
-        vSector.clear();
-        vCharge.clear();
-        vPid.clear();
-        vBeta.clear();
-        vPx.clear();
-        vPy.clear();
-        vPz.clear();
-        vMom.clear();
-        vMass2.clear();
-        vX.clear();
-        vY.clear();
-        vZ.clear();
-        vECx.clear();
-        vECy.clear();
-        vECz.clear();
-        vECu.clear();
-        vECv.clear();
-        vECw.clear();
-        vECtot.clear();
-        vECin.clear();
-        vECout.clear();
-        vECtime.clear();
-        vECpath.clear();
-        vEChit_M2.clear();
-        vEChit_M3.clear();
-        vEChit_M4.clear();
-        vChi2EC.clear();
-        vSCpath.clear();
-        vSCtime.clear();
-        vCCnphe.clear();
-        vT.clear();
-        vXf.clear();
-        vMx2.clear();
-        vPt.clear();
-        vZh.clear();
-        vThetaPQ.clear();
-        vPhiPQ.clear();
-        vTimeCorr4.clear();
+        pEvtNum.clear();
+        nPart.clear();
+        Sector.clear();
+        Charge.clear();
+        Pid.clear();
+        Beta.clear();
+        Px.clear();
+        Py.clear();
+        Pz.clear();
+        Mom.clear();
+        Mass2.clear();
+        X.clear();
+        Y.clear();
+        Z.clear();
+        ECx.clear();
+        ECy.clear();
+        ECz.clear();
+        ECu.clear();
+        ECv.clear();
+        ECw.clear();
+        ECtot.clear();
+        ECin.clear();
+        ECout.clear();
+        ECtime.clear();
+        ECpath.clear();
+        EChit_M2.clear();
+        EChit_M3.clear();
+        EChit_M4.clear();
+        Chi2EC.clear();
+        SCpath.clear();
+        SCtime.clear();
+        CCnphe.clear();
+        T.clear();
+        Xf.clear();
+        Mx2.clear();
+        Pt.clear();
+        Zh.clear();
+        ThetaPQ.clear();
+        PhiPQ.clear();
+        TimeCorr4.clear();
         
         if(nRows>0){
             partIndex.clear(); // clear out the particle list
@@ -385,106 +361,59 @@ int main(int argc, char **argv)
                     myKine.Zcorr = vert->Z();
                 }
 
-	    		pCtr = 0;  // initialize the partcle counter
-                myPart.pEvtNum = t -> NEvent();
-                myPart.nPart = partIndex.size(); // save the number of particles
+                pEvtNum.push_back(t -> NEvent());
+                nPart.push_back(partIndex.size()); // save the number of particles
         		while (!partIndex.empty()) {
 		    		i = partIndex.back(); // retrieve EVNT index for each particle
                     partIndex.pop_back(); // erase last entry in the list
 
-                    vSector.push_back(t->Sector(i,kind));
-                    vCharge.push_back(t->Charge(i,kind));
-                    vBeta.push_back(t->Betta(i,kind));
-                    vPid.push_back(t->Id(i,kind));
-                    vMom.push_back(t->Momentum(i,kind));
-                    vPx.push_back(t->Px(i, kind));
-                    vPy.push_back(t->Py(i, kind));
-                    vPz.push_back(t->Pz(i, kind));
-                    vX.push_back(t->X(i, kind));
-                    vY.push_back(t->Y(i, kind));
-                    vZ.push_back(t->Z(i, kind));
-                    vMass2.push_back(t->Mass2(i,kind));
-                    vThetaPQ.push_back(t -> ThetaPQ(i, kind));
-                    vPhiPQ.push_back(t -> PhiPQ(i, kind));
-                    vZh.push_back(t -> Zh(i, kind));
-                    vPt.push_back(TMath::Sqrt(t -> Pt2(i, kind)));
-                    vMx2.push_back(t -> Mx2(i, kind));
-                    vXf.push_back(t -> Xf(i, kind));
-                    vT.push_back(t -> T(i, kind));
-                    
-                    myPart.Sector[pCtr] = t->Sector(i,kind);
-                    myPart.Charge[pCtr] = t->Charge(i,kind);
-                    myPart.Beta[pCtr] = t->Betta(i,kind);
-                    myPart.Pid[pCtr] = t->Id(i,kind);
-                    myPart.Mom[pCtr] = t->Momentum(i,kind);
-                    myPart.Px[pCtr] = t->Px(i, kind);
-                    myPart.Py[pCtr] = t->Py(i, kind);
-                    myPart.Pz[pCtr] = t->Pz(i, kind);
-                    myPart.X[pCtr] = t->X(i, kind);
-                    myPart.Y[pCtr] = t->Y(i, kind);
-                    myPart.Z[pCtr] = t->Z(i, kind);
-                    myPart.Mass2[pCtr] = t->Mass2(i,kind);
+                    Sector.push_back(t->Sector(i,kind));
+                    Charge.push_back(t->Charge(i,kind));
+                    Beta.push_back(t->Betta(i,kind));
+                    Pid.push_back(t->Id(i,kind));
+                    Mom.push_back(t->Momentum(i,kind));
+                    Px.push_back(t->Px(i, kind));
+                    Py.push_back(t->Py(i, kind));
+                    Pz.push_back(t->Pz(i, kind));
+                    X.push_back(t->X(i, kind));
+                    Y.push_back(t->Y(i, kind));
+                    Z.push_back(t->Z(i, kind));
+                    Mass2.push_back(t->Mass2(i,kind));
+                    ThetaPQ.push_back(t -> ThetaPQ(i, kind));
+                    PhiPQ.push_back(t -> PhiPQ(i, kind));
+                    Zh.push_back(t -> Zh(i, kind));
+                    Pt.push_back(TMath::Sqrt(t -> Pt2(i, kind)));
+                    Mx2.push_back(t -> Mx2(i, kind));
+                    Xf.push_back(t -> Xf(i, kind));
+                    T.push_back(t -> T(i, kind));
 
-                    myPart.ThetaPQ[pCtr] = t -> ThetaPQ(i, kind);
-                    myPart.PhiPQ[pCtr] = t -> PhiPQ(i, kind);
-                    myPart.Zh[pCtr] = t -> Zh(i, kind);
-                    myPart.Pt[pCtr] = TMath::Sqrt(t -> Pt2(i, kind));
-                    myPart.Mx2[pCtr] = t -> Mx2(i, kind);
-                    myPart.Xf[pCtr] = t -> Xf(i, kind);
-        			myPart.T[pCtr] = t -> T(i, kind);
-                    
                     if(simul_key == false){
-                        vECtot.push_back(TMath::Max(t->Etot(i),t->Ein(i)+t->Eout(i)));
-                        vECin.push_back(t->Ein(i));
-                        vECout.push_back(t->Eout(i));
-                        vECx.push_back(t->XEC(i));
-                        vECy.push_back(t->YEC(i));
-                        vECz.push_back(t->ZEC(i));
+                        ECtot.push_back(TMath::Max(t->Etot(i),t->Ein(i)+t->Eout(i)));
+                        ECin.push_back(t->Ein(i));
+                        ECout.push_back(t->Eout(i));
+                        ECx.push_back(t->XEC(i));
+                        ECy.push_back(t->YEC(i));
+                        ECz.push_back(t->ZEC(i));
                         ECxyz->SetXYZ(t->XEC(i),t->YEC(i),t->ZEC(i));
                         ECuvw = t->XYZToUVW(ECxyz);
-                        vECu.push_back(ECuvw->X());
-                        vECv.push_back(ECuvw->Y());
-                        vECw.push_back(ECuvw->Z());
-                        vECtime.push_back(t->TimeEC(i));
-                        vECpath.push_back(t->PathEC(i));
-                        vEChit_M2.push_back(t->EChit_Moment2(i));
-                        vEChit_M3.push_back(t->EChit_Moment3(i));
-                        vEChit_M4.push_back(t->EChit_Moment4(i));
-                        vChi2EC.push_back(t->Chi2EC(i));
-                        vSCtime.push_back(t->TimeSC(i));
-                        vSCpath.push_back(t->PathSC(i));
-                        vCCnphe.push_back(t->Nphe(i));
-                        
-                        myPart.ECtot[pCtr] = TMath::Max(t->Etot(i),t->Ein(i)+t->Eout(i));
-                        myPart.ECin[pCtr] = t->Ein(i);
-                        myPart.ECout[pCtr] = t->Eout(i);
-                        myPart.ECx[pCtr] = t->XEC(i);
-                        myPart.ECy[pCtr] = t->YEC(i);
-                        myPart.ECz[pCtr] = t->ZEC(i);
-                        ECxyz->SetXYZ(t->XEC(i),t->YEC(i),t->ZEC(i));
-                        ECuvw = t->XYZToUVW(ECxyz);
-                        myPart.ECu[pCtr] = ECuvw->X();
-                        myPart.ECv[pCtr] = ECuvw->Y();
-                        myPart.ECw[pCtr] = ECuvw->Z();
- 				        myPart.ECtime[pCtr] = t->TimeEC(i);
-                        myPart.ECpath[pCtr] = t->PathEC(i);
-                        myPart.EChit_M2[pCtr] = t->EChit_Moment2(i);
-                        myPart.EChit_M3[pCtr] = t->EChit_Moment3(i);
-                        myPart.EChit_M4[pCtr] = t->EChit_Moment4(i);
-                        myPart.Chi2EC[pCtr] = t->Chi2EC(i);
+                        ECu.push_back(ECuvw->X());
+                        ECv.push_back(ECuvw->Y());
+                        ECw.push_back(ECuvw->Z());
+                        ECtime.push_back(t->TimeEC(i));
+                        ECpath.push_back(t->PathEC(i));
+                        EChit_M2.push_back(t->EChit_Moment2(i));
+                        EChit_M3.push_back(t->EChit_Moment3(i));
+                        EChit_M4.push_back(t->EChit_Moment4(i));
+                        Chi2EC.push_back(t->Chi2EC(i));
+                        SCtime.push_back(t->TimeSC(i));
+                        SCpath.push_back(t->PathSC(i));
+                        CCnphe.push_back(t->Nphe(i));
 
-                        myPart.SCtime[pCtr] = t->TimeSC(i);
-                        myPart.SCpath[pCtr] = t->PathSC(i);
-
-                        myPart.CCnphe[pCtr] = t->Nphe(i);
-
-                        if(myPart.Pid[pCtr] == GetPID("Electron",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(0.000511,i);
-                        if(myPart.Pid[pCtr] == GetPID("PiPlus",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(kMassPi_plus,i);
-                        if(myPart.Pid[pCtr] == GetPID("PiMinus",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(kMassPi_min,i);
-                        if(myPart.Pid[pCtr] == GetPID("Photon",kind)) myPart.TimeCorr4[pCtr] = t -> TimeCorr4(0.0,i);
-                        vTimeCorr4.push_back(myPart.TimeCorr4[pCtr]);
+                        if(t->Id(i,kind) == GetPID("Electron",kind)) TimeCorr4.push_back(t -> TimeCorr4(0.000511,i));
+                        if(t->Id(i,kind) == GetPID("PiPlus",kind)) TimeCorr4.push_back(t -> TimeCorr4(kMassPi_plus,i));
+                        if(t->Id(i,kind) == GetPID("PiMinus",kind)) TimeCorr4.push_back(t -> TimeCorr4(kMassPi_min,i));
+                        if(t->Id(i,kind) == GetPID("Photon",kind)) TimeCorr4.push_back(t -> TimeCorr4(0.0,i));
                     }
-                    pCtr++;
                 }
                 dataTree->Fill();
             }
