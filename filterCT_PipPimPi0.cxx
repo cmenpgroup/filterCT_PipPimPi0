@@ -63,7 +63,8 @@ typedef struct{
     int nPart;
     int Sector[MAX_PART];
     Double_t Charge[MAX_PART];
-    Double_t Pid[MAX_PART], Beta[MAX_PART];
+    Double_t Pid[MAX_PART];
+    std::vector<Double_t> Beta;
     Double_t Px[MAX_PART], Py[MAX_PART], Pz[MAX_PART], Mom[MAX_PART], Mass2[MAX_PART];
     float X[MAX_PART], Y[MAX_PART], Z[MAX_PART];
     float ECx[MAX_PART], ECy[MAX_PART], ECz[MAX_PART], ECu[MAX_PART], ECv[MAX_PART], ECw[MAX_PART];
@@ -151,7 +152,7 @@ int main(int argc, char **argv)
     
     string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I:nProton/I:nNeutron/I:nKp/I:nKm/I:nPositron/I";
  
-    string partList = "pEvtNum/F:nPart/I:Charge[nPart]/D:Sector[nPart]/I:Pid[nPart]/D:Beta[nPart]/D:Px[nPart]/D:Py[nPart]/D:Pz[nPart]/D:Mom[nPart]/D:Mass2[nPart]/D:X[nPart]/F:Y[nPart]/F:Z[nPart]/F:ECx[nPart]/F:ECy[nPart]/F:ECz[nPart]/F:ECu[nPart]/F:ECv[nPart]/F:ECw[nPart]/F:ECtot[nPart]/F:ECin[nPart]/F:ECout[nPart]/F:ECtime[nPart]/F:ECpath[nPart]/F:EChit_M2[nPart]/F:EChit_M3[nPart]/F:EChit_M4[nPart]/F:Chi2EC[nPart]/F:SCpath[nPart]/F:SCtime[nPart]/F:CCnphe[nPart]/F:T[nPart]/F:Xf[nPart]/F:Mx2[nPart]/F:Pt[nPart]/F:Zh[nPart]/F:ThetaPQ[nPart]/F:PhiPQ[nPart]/F:TimeCorr4[nPart]/F";
+    string partList = "pEvtNum/F:nPart/I:Charge[nPart]/D:Sector[nPart]/I:Pid[nPart]/D:Beta/D:Px[nPart]/D:Py[nPart]/D:Pz[nPart]/D:Mom[nPart]/D:Mass2[nPart]/D:X[nPart]/F:Y[nPart]/F:Z[nPart]/F:ECx[nPart]/F:ECy[nPart]/F:ECz[nPart]/F:ECu[nPart]/F:ECv[nPart]/F:ECw[nPart]/F:ECtot[nPart]/F:ECin[nPart]/F:ECout[nPart]/F:ECtime[nPart]/F:ECpath[nPart]/F:EChit_M2[nPart]/F:EChit_M3[nPart]/F:EChit_M4[nPart]/F:Chi2EC[nPart]/F:SCpath[nPart]/F:SCtime[nPart]/F:CCnphe[nPart]/F:T[nPart]/F:Xf[nPart]/F:Mx2[nPart]/F:Pt[nPart]/F:Zh[nPart]/F:ThetaPQ[nPart]/F:PhiPQ[nPart]/F:TimeCorr4[nPart]/F";
     KINEVAR myKine;
     PARTVAR myPart;
     
@@ -171,21 +172,14 @@ int main(int argc, char **argv)
     std::vector<Double_t> vPy;
     std::vector<Double_t> vPz;
     std::vector<Double_t> vMom;
-    dataTree->Branch("vParticles",&vCharge);
-    dataTree->Branch("vParticles",&vPid);
-    dataTree->Branch("vParticles",&vBeta);
-    dataTree->Branch("vParticles",&vPx);
-    dataTree->Branch("vParticles",&vPy);
-    dataTree->Branch("vParticles",&vPz);
-    dataTree->Branch("vParticles",&vMom);
-/*    dataTree->Branch("vCharge",&vCharge);
+    dataTree->Branch("vCharge",&vCharge);
     dataTree->Branch("vPid",&vPid);
     dataTree->Branch("vBeta",&vBeta);
     dataTree->Branch("vPx",&vPx);
     dataTree->Branch("vPy",&vPy);
     dataTree->Branch("vPz",&vPz);
     dataTree->Branch("vMom",&vMom);
-*/
+
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
     for (i = optind; i < argc; ++i) {
@@ -234,6 +228,8 @@ int main(int argc, char **argv)
         vPy.clear();
         vPz.clear();
         vMom.clear();
+        
+        myPart.Beta.clear();
         
         if(nRows>0){
             partIndex.clear(); // clear out the particle list
@@ -322,7 +318,7 @@ int main(int argc, char **argv)
                     
                     myPart.Sector[pCtr] = t->Sector(i,kind);
                     myPart.Charge[pCtr] = t->Charge(i,kind);
-                    myPart.Beta[pCtr] = t->Betta(i,kind);
+                    myPart.Beta.push_back(t->Betta(i,kind));
                     myPart.Pid[pCtr] = t->Id(i,kind);
                     myPart.Mom[pCtr] = t->Momentum(i,kind);
                     myPart.Px[pCtr] = t->Px(i, kind);
