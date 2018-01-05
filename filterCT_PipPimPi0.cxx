@@ -12,8 +12,6 @@
 #include "massConst.h"
 using namespace std;
 
-#pragma link C++ class vector<float>+;
-
 #define MAX_ELECTRONS 1
 #define MAX_PIPLUS 1
 #define MAX_PIMINUS 1
@@ -224,8 +222,8 @@ int main(int argc, char **argv)
     dataTree->Branch("vECtime",&vECtime);
     dataTree->Branch("vECpath",&vECpath);
     dataTree->Branch("vEChit_M2",&vEChit_M2);
-    dataTree->Branch("vEChit_M3",&vEChiy_M3),
-    dataTree->Branch("vEChit_M4",&vEChiy_M4);
+    dataTree->Branch("vEChit_M3",&vEChit_M3),
+    dataTree->Branch("vEChit_M4",&vEChit_M4);
     dataTree->Branch("vChi2EC",&vChi2EC);
     dataTree->Branch("vSCpath",&vSCpath);
     dataTree->Branch("vSCtime",&vSCtime);
