@@ -185,7 +185,7 @@ int main(int argc, char **argv)
     std::vector<Double_t> vECtime;
     std::vector<Double_t> vECpath;
     std::vector<Double_t> vEChit_M2;
-    std::vector<Double_t> vEChit_M3,
+    std::vector<Double_t> vEChit_M3;
     std::vector<Double_t> vEChit_M4;
     std::vector<Double_t> vChi2EC;
     std::vector<Double_t> vSCpath;
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
     dataTree->Branch("vPy",&vPy);
     dataTree->Branch("vPz",&vPz);
     dataTree->Branch("vMom",&vMom);
-    dataTree->Branch("vMass2",&Mass2);
+    dataTree->Branch("vMass2",&vMass2);
     dataTree->Branch("vX",&vX);
     dataTree->Branch("vY",&vY);
     dataTree->Branch("vZ",&vZ);
