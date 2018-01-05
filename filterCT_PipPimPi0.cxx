@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     extern int optind;
     
     int i, j, k;
-    int nRows, kind, tempPid;
+    int nRows, kind, tempPid, savePid;
     int candCtr = 0;
     int ctr_nElec = 0;
     int dEvents = 1000; // increment of events for processing print statement
@@ -80,8 +80,8 @@ int main(int argc, char **argv)
     char *inFile;
     string outFile = "PipPimPi0.root";
     
+    bool partFound = false;
     bool topology = false;
-    vector<int> partIndex;
 
     TVector3 *vert;
     TVector3 *ECxyz = new TVector3(0.0,0.0,0.0);
@@ -295,10 +295,11 @@ int main(int argc, char **argv)
         TimeCorr4.clear();
         
         if(nRows>0){
-            partIndex.clear(); // clear out the particle list
 	    	topology = false; // init. the event topology cut
 	    	for (j = 0; j < nRows; j++) {
 
+                partFound = false; // init the found particle flag to false
+                
                 // select the PID selection scheme
                 if(simul_key){
                     catPid = t -> GetCategorizationGSIM(j);
@@ -310,48 +311,104 @@ int main(int argc, char **argv)
                     }
                 }
                 tempPid = t -> Id(j,kind);
-               
-//                cout<<"Particle "<< tempPid <<"\t"<<catPid<<endl;
-//                if(tempPid == GetPID("Electron",kind)){
-                if(catPid.EqualTo("electron")){
-                    myKine.nElec++;
-                    partIndex.push_back(j);
-                    ctr_nElec++;
-                }
-                if(catPid.EqualTo("high energy pion +") || catPid.EqualTo("low energy pion +") || catPid.EqualTo("pi+")){
-//                if(tempPid == GetPID("PiPlus",kind)){
-                    myKine.nPip++;
-                    partIndex.push_back(j);
-                }
-                if(catPid.EqualTo("pi-")){
-//                if(tempPid == GetPID("PiMinus",kind)){
-                    myKine.nPim++;
-                    partIndex.push_back(j);
-                }
-                if(catPid.EqualTo("gamma")){
-//                if(tempPid == GetPID("Photon",kind)){
-                    myKine.nGam++;
-                    partIndex.push_back(j);
-                }
-                
                 if(tempPid == GetPID("Proton",kind)) myKine.nProton++;
                 if(tempPid == GetPID("Neutron",kind)) myKine.nNeutron++;
                 if(tempPid == GetPID("KPlus",kind)) myKine.nKp++;
                 if(tempPid == GetPID("KMinus",kind)) myKine.nKm++;
                 if(tempPid == GetPID("Positron",kind)) myKine.nPositron++;
+                
+//                cout<<"Particle "<< tempPid <<"\t"<<catPid<<endl;
+//                if(tempPid == GetPID("Electron",kind)){
+                if(catPid.EqualTo("electron")){
+                    myKine.nElec++;
+                    ctr_nElec++;
+                    partFound = true; // init the found particle flag to true
+                    savePid = GetPID("Electron",kind); // set the correct particle id
+                }
+                if(catPid.EqualTo("high energy pion +") || catPid.EqualTo("low energy pion +") || catPid.EqualTo("pi+")){
+//                if(tempPid == GetPID("PiPlus",kind)){
+                    myKine.nPip++;
+                    partFound = true; // init the found particle flag to true
+                    savePid = GetPID("PiPlus",kind); // set the correct particle id
+                }
+                if(catPid.EqualTo("pi-")){
+//                if(tempPid == GetPID("PiMinus",kind)){
+                    myKine.nPim++;
+                    partFound = true; // init the found particle flag to true
+                    savePid = GetPID("PiMinus",kind); // set the correct particle id
+                }
+                if(catPid.EqualTo("gamma")){
+//                if(tempPid == GetPID("Photon",kind)){
+                    myKine.nGam++;
+                    partFound = true; // init the found particle flag to true
+                    savePid = GetPID("Photon",kind); // set the correct particle id                    
+                }
+
+        		while (partFound) {
+                    Sector.push_back(t->Sector(j,kind));
+                    Charge.push_back(t->Charge(j,kind));
+                    Beta.push_back(t->Betta(j,kind));
+                    Pid.push_back(t->Id(j,kind));
+                    Mom.push_back(t->Momentum(j,kind));
+                    Px.push_back(t->Px(j,kind));
+                    Py.push_back(t->Py(j,kind));
+                    Pz.push_back(t->Pz(j,kind));
+                    X.push_back(t->X(j,kind));
+                    Y.push_back(t->Y(j,kind));
+                    Z.push_back(t->Z(j,kind));
+                    Mass2.push_back(t->Mass2(j,kind));
+                    ThetaPQ.push_back(t -> ThetaPQ(j,kind));
+                    PhiPQ.push_back(t -> PhiPQ(j,kind));
+                    Zh.push_back(t -> Zh(j,kind));
+                    Pt.push_back(TMath::Sqrt(t -> Pt2(j,kind)));
+                    Mx2.push_back(t -> Mx2(j,kind));
+                    Xf.push_back(t -> Xf(j,kind));
+                    T.push_back(t -> T(j,kind));
+
+                    if(simul_key == false){
+                        ECtot.push_back(TMath::Max(t->Etot(j),t->Ein(j)+t->Eout(j)));
+                        ECin.push_back(t->Ein(j));
+                        ECout.push_back(t->Eout(j));
+                        ECx.push_back(t->XEC(j));
+                        ECy.push_back(t->YEC(j));
+                        ECz.push_back(t->ZEC(j));
+                        ECxyz->SetXYZ(t->XEC(j),t->YEC(j),t->ZEC(j));
+                        ECuvw = t->XYZToUVW(ECxyz);
+                        ECu.push_back(ECuvw->X());
+                        ECv.push_back(ECuvw->Y());
+                        ECw.push_back(ECuvw->Z());
+                        ECtime.push_back(t->TimeEC(j));
+                        ECpath.push_back(t->PathEC(j));
+                        EChit_M2.push_back(t->EChit_Moment2(j));
+                        EChit_M3.push_back(t->EChit_Moment3(j));
+                        EChit_M4.push_back(t->EChit_Moment4(j));
+                        Chi2EC.push_back(t->Chi2EC(j));
+                        SCtime.push_back(t->TimeSC(j));
+                        SCpath.push_back(t->PathSC(j));
+                        CCnphe.push_back(t->Nphe(j));
+
+                        if(t->Id(j,kind) == GetPID("Electron",kind)) TimeCorr4.push_back(t -> TimeCorr4(0.000511,j));
+                        if(t->Id(j,kind) == GetPID("PiPlus",kind)) TimeCorr4.push_back(t -> TimeCorr4(kMassPi_plus,j));
+                        if(t->Id(j,kind) == GetPID("PiMinus",kind)) TimeCorr4.push_back(t -> TimeCorr4(kMassPi_min,j));
+                        if(t->Id(j,kind) == GetPID("Photon",kind)) TimeCorr4.push_back(t -> TimeCorr4(0.0,j));
+                    }
+                }
             }
             
-	    	topology = (myKine.nElec>=MAX_ELECTRONS && myKine.nPip>=MAX_PIPLUS && myKine.nPim>=MAX_PIMINUS && myKine.nGam>=MAX_PHOTONS); // check event topology
-
-	    	if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
+            topology = (myKine.nElec>=MAX_ELECTRONS && myKine.nPip>=MAX_PIPLUS && myKine.nPim>=MAX_PIMINUS && myKine.nGam>=MAX_PHOTONS); // check event topology
+                
+            if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
                 candCtr++;
                 myKine.EvtNum = t -> NEvent();
                 myKine.ElecVertTarg = t -> ElecVertTarg(kind);
                 myKine.Q2 = t -> Q2(kind);
-		     	myKine.Nu = t -> Nu(kind);
-	       		myKine.Xb = t -> Xb(kind);
-        		myKine.W = t -> W(kind);
-
+                myKine.Nu = t -> Nu(kind);
+                myKine.Xb = t -> Xb(kind);
+                myKine.W = t -> W(kind);
+                
+                pEvtNum.push_back(t -> NEvent());
+                nPart.push_back(myKine.nElec + myKine.nPip + myKine.nPim + myKine.nGam); // save the number of particles
+                
                 if(simul_key){
                     myKine.Xcorr = t->X(0, kind);
                     myKine.Ycorr = t->Y(0, kind);
@@ -362,61 +419,7 @@ int main(int argc, char **argv)
                     myKine.Ycorr = vert->Y();
                     myKine.Zcorr = vert->Z();
                 }
-
-                pEvtNum.push_back(t -> NEvent());
-                nPart.push_back(partIndex.size()); // save the number of particles
-        		while (!partIndex.empty()) {
-		    		i = partIndex.back(); // retrieve EVNT index for each particle
-                    partIndex.pop_back(); // erase last entry in the list
-
-                    Sector.push_back(t->Sector(i,kind));
-                    Charge.push_back(t->Charge(i,kind));
-                    Beta.push_back(t->Betta(i,kind));
-                    Pid.push_back(t->Id(i,kind));
-                    Mom.push_back(t->Momentum(i,kind));
-                    Px.push_back(t->Px(i, kind));
-                    Py.push_back(t->Py(i, kind));
-                    Pz.push_back(t->Pz(i, kind));
-                    X.push_back(t->X(i, kind));
-                    Y.push_back(t->Y(i, kind));
-                    Z.push_back(t->Z(i, kind));
-                    Mass2.push_back(t->Mass2(i,kind));
-                    ThetaPQ.push_back(t -> ThetaPQ(i, kind));
-                    PhiPQ.push_back(t -> PhiPQ(i, kind));
-                    Zh.push_back(t -> Zh(i, kind));
-                    Pt.push_back(TMath::Sqrt(t -> Pt2(i, kind)));
-                    Mx2.push_back(t -> Mx2(i, kind));
-                    Xf.push_back(t -> Xf(i, kind));
-                    T.push_back(t -> T(i, kind));
-
-                    if(simul_key == false){
-                        ECtot.push_back(TMath::Max(t->Etot(i),t->Ein(i)+t->Eout(i)));
-                        ECin.push_back(t->Ein(i));
-                        ECout.push_back(t->Eout(i));
-                        ECx.push_back(t->XEC(i));
-                        ECy.push_back(t->YEC(i));
-                        ECz.push_back(t->ZEC(i));
-                        ECxyz->SetXYZ(t->XEC(i),t->YEC(i),t->ZEC(i));
-                        ECuvw = t->XYZToUVW(ECxyz);
-                        ECu.push_back(ECuvw->X());
-                        ECv.push_back(ECuvw->Y());
-                        ECw.push_back(ECuvw->Z());
-                        ECtime.push_back(t->TimeEC(i));
-                        ECpath.push_back(t->PathEC(i));
-                        EChit_M2.push_back(t->EChit_Moment2(i));
-                        EChit_M3.push_back(t->EChit_Moment3(i));
-                        EChit_M4.push_back(t->EChit_Moment4(i));
-                        Chi2EC.push_back(t->Chi2EC(i));
-                        SCtime.push_back(t->TimeSC(i));
-                        SCpath.push_back(t->PathSC(i));
-                        CCnphe.push_back(t->Nphe(i));
-
-                        if(t->Id(i,kind) == GetPID("Electron",kind)) TimeCorr4.push_back(t -> TimeCorr4(0.000511,i));
-                        if(t->Id(i,kind) == GetPID("PiPlus",kind)) TimeCorr4.push_back(t -> TimeCorr4(kMassPi_plus,i));
-                        if(t->Id(i,kind) == GetPID("PiMinus",kind)) TimeCorr4.push_back(t -> TimeCorr4(kMassPi_min,i));
-                        if(t->Id(i,kind) == GetPID("Photon",kind)) TimeCorr4.push_back(t -> TimeCorr4(0.0,i));
-                    }
-                }
+                    
                 dataTree->Fill();
             }
     	} 
