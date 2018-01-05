@@ -341,10 +341,10 @@ int main(int argc, char **argv)
 //                if(tempPid == GetPID("Photon",kind)){
                     myKine.nGam++;
                     partFound = true; // init the found particle flag to true
-                    savePid = GetPID("Photon",kind); // set the correct particle id                    
+                    savePid = GetPID("Photon",kind); // set the correct particle id
                 }
 
-        		while (partFound) {
+        		if (partFound) {
                     Sector.push_back(t->Sector(j,kind));
                     Charge.push_back(t->Charge(j,kind));
                     Beta.push_back(t->Betta(j,kind));
