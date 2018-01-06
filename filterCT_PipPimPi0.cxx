@@ -348,7 +348,8 @@ int main(int argc, char **argv)
                     Sector.push_back(t->Sector(j,kind));
                     Charge.push_back(t->Charge(j,kind));
                     Beta.push_back(t->Betta(j,kind));
-                    Pid.push_back(t->Id(j,kind));
+//                    Pid.push_back(t->Id(j,kind));
+                    Pid.push_back(savePid);
                     Mom.push_back(t->Momentum(j,kind));
                     Px.push_back(t->Px(j,kind));
                     Py.push_back(t->Py(j,kind));
