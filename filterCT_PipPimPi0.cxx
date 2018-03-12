@@ -4,6 +4,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TVector3.h"
+#include "TClonesArray.h"
 #include "TClasTool.h"
 #include "TIdentificator.h"
 #include "TMath.h"
@@ -128,46 +129,44 @@ int main(int argc, char **argv)
     }
     cout<<"Analyzing " << target << " target data"<<endl;
   
-    std::vector<int> pEvtNum;
-    std::vector<int> nPart;
-    std::vector<int> Sector;
-    std::vector<Double_t> Charge;
-    std::vector<Double_t> Pid;
-    std::vector<Double_t> Beta;
-    std::vector<Double_t> Px;
-    std::vector<Double_t> Py;
-    std::vector<Double_t> Pz;
-    std::vector<Double_t> Mom;
-    std::vector<Double_t> Mass2;
-    std::vector<Double_t> X;
-    std::vector<Double_t> Y;
-    std::vector<Double_t> Z;
-    std::vector<Double_t> ECx;
-    std::vector<Double_t> ECy;
-    std::vector<Double_t> ECz;
-    std::vector<Double_t> ECu;
-    std::vector<Double_t> ECv;
-    std::vector<Double_t> ECw;
-    std::vector<Double_t> ECtot;
-    std::vector<Double_t> ECin;
-    std::vector<Double_t> ECout;
-    std::vector<Double_t> ECtime;
-    std::vector<Double_t> ECpath;
-    std::vector<Double_t> EChit_M2;
-    std::vector<Double_t> EChit_M3;
-    std::vector<Double_t> EChit_M4;
-    std::vector<Double_t> Chi2EC;
-    std::vector<Double_t> SCpath;
-    std::vector<Double_t> SCtime;
-    std::vector<Double_t> CCnphe;
-    std::vector<Double_t> T;
-    std::vector<Double_t> Xf;
-    std::vector<Double_t> Mx2;
-    std::vector<Double_t> Pt;
-    std::vector<Double_t> Zh;
-    std::vector<Double_t> ThetaPQ;
-    std::vector<Double_t> PhiPQ;
-    std::vector<Double_t> TimeCorr4;
+    TClonesArray *Sector = new TClonesArray("Int_t");
+    TClonesArray *Charge = new TClonesArray("Double_t");
+    TClonesArray *Pid = new TClonesArray("Double_t");
+    TClonesArray *Beta = new TClonesArray("Double_t");
+    TClonesArray *Px = new TClonesArray("Double_t");
+    TClonesArray *Py = new TClonesArray("Double_t");
+    TClonesArray *Pz = new TClonesArray("Double_t");
+    TClonesArray *Mom = new TClonesArray("Double_t");
+    TClonesArray *Mass2 = new TClonesArray("Double_t");
+    TClonesArray *X = new TClonesArray("Double_t");
+    TClonesArray *Y = new TClonesArray("Double_t");
+    TClonesArray *Z = new TClonesArray("Double_t");
+    TClonesArray *ECx = new TClonesArray("Double_t");
+    TClonesArray *ECy = new TClonesArray("Double_t");
+    TClonesArray *ECz = new TClonesArray("Double_t");
+    TClonesArray *ECu = new TClonesArray("Double_t");
+    TClonesArray *ECv = new TClonesArray("Double_t");
+    TClonesArray *ECw = new TClonesArray("Double_t");
+    TClonesArray *ECtot = new TClonesArray("Double_t");
+    TClonesArray *ECin = new TClonesArray("Double_t");
+    TClonesArray *ECout = new TClonesArray("Double_t");
+    TClonesArray *ECtime = new TClonesArray("Double_t");
+    TClonesArray *ECpath = new TClonesArray("Double_t");
+    TClonesArray *EChit_M2 = new TClonesArray("Double_t");
+    TClonesArray *EChit_M3 = new TClonesArray("Double_t");
+    TClonesArray *EChit_M4 = new TClonesArray("Double_t");
+    TClonesArray *Chi2EC = new TClonesArray("Double_t");
+    TClonesArray *SCpath = new TClonesArray("Double_t");
+    TClonesArray *SCtime = new TClonesArray("Double_t");
+    TClonesArray *CCnphe = new TClonesArray("Double_t");
+    TClonesArray *T = new TClonesArray("Double_t");
+    TClonesArray *Xf = new TClonesArray("Double_t");
+    TClonesArray *Mx2 = new TClonesArray("Double_t");
+    TClonesArray *Pt = new TClonesArray("Double_t");
+    TClonesArray *Zh = new TClonesArray("Double_t");
+    TClonesArray *ThetaPQ = new TClonesArray("Double_t");
+    TClonesArray *PhiPQ = new TClonesArray("Double_t");
+    TClonesArray *TimeCorr4 = new TClonesArray("Double_t");
     
     string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I:nProton/I:nNeutron/I:nKp/I:nKm/I:nPositron/I";
     KINEVAR myKine;
@@ -175,46 +174,45 @@ int main(int argc, char **argv)
     TTree *dataTree = new TTree("Data","Experimental Data Tree");
     dataTree->Branch("Kinematics",&myKine,kineList.c_str());
 
-    dataTree->Branch("pEvtNum",&pEvtNum);
-    dataTree->Branch("nPart",&nPart);
-    dataTree->Branch("Sector",&Sector);
-    dataTree->Branch("Charge",&Charge);
-    dataTree->Branch("Pid",&Pid);
-    dataTree->Branch("Beta",&Beta);
-    dataTree->Branch("Px",&Px);
-    dataTree->Branch("Py",&Py);
-    dataTree->Branch("Pz",&Pz);
-    dataTree->Branch("Mom",&Mom);
-    dataTree->Branch("Mass2",&Mass2);
-    dataTree->Branch("X",&X);
-    dataTree->Branch("Y",&Y);
-    dataTree->Branch("Z",&Z);
-    dataTree->Branch("ECx",&ECx);
-    dataTree->Branch("ECy",&ECy);
-    dataTree->Branch("ECz",&ECz);
-    dataTree->Branch("ECu",&ECu);
-    dataTree->Branch("ECv",&ECv);
-    dataTree->Branch("ECw",&ECw);
-    dataTree->Branch("ECtot",&ECtot);
-    dataTree->Branch("ECin",&ECin);
-    dataTree->Branch("ECout",&ECout);
-    dataTree->Branch("ECtime",&ECtime);
-    dataTree->Branch("ECpath",&ECpath);
-    dataTree->Branch("EChit_M2",&EChit_M2);
+    Int_t iTCA = 15;
+    dataTree->Branch("Sector",&Sector,iTCA);
+    dataTree->Branch("Charge",&Charge,iTCA);
+    dataTree->Branch("Pid",&Pid,iTCA);
+    dataTree->Branch("Beta",&Beta,iTCA);
+    dataTree->Branch("Px",&Px,iTCA);
+    dataTree->Branch("Py",&Py,iTCA);
+    dataTree->Branch("Pz",&Pz,iTCA);
+    dataTree->Branch("Mom",&Mom,iTCA);
+    dataTree->Branch("Mass2",&Mass2,iTCA);
+    dataTree->Branch("X",&X,iTCA);
+    dataTree->Branch("Y",&Y,iTCA);
+    dataTree->Branch("Z",&Z,iTCA);
+    dataTree->Branch("ECx",&ECx,iTCA);
+    dataTree->Branch("ECy",&ECy,iTCA);
+    dataTree->Branch("ECz",&ECz,iTCA);
+    dataTree->Branch("ECu",&ECu,iTCA);
+    dataTree->Branch("ECv",&ECv,iTCA);
+    dataTree->Branch("ECw",&ECw,iTCA);
+    dataTree->Branch("ECtot",&ECtot,iTCA);
+    dataTree->Branch("ECin",&ECin,iTCA);
+    dataTree->Branch("ECout",&ECout,iTCA);
+    dataTree->Branch("ECtime",&ECtime,iTCA);
+    dataTree->Branch("ECpath",&ECpath,iTCA);
+    dataTree->Branch("EChit_M2",&EChit_M2,iTCA);
     dataTree->Branch("EChit_M3",&EChit_M3),
-    dataTree->Branch("EChit_M4",&EChit_M4);
-    dataTree->Branch("Chi2EC",&Chi2EC);
-    dataTree->Branch("SCpath",&SCpath);
-    dataTree->Branch("SCtime",&SCtime);
-    dataTree->Branch("CCnphe",&CCnphe);
-    dataTree->Branch("T",&T);
-    dataTree->Branch("Xf",&Xf);
-    dataTree->Branch("Mx2",&Mx2);
-    dataTree->Branch("Pt",&Pt);
-    dataTree->Branch("Zh",&Zh);
-    dataTree->Branch("ThetaPQ",&ThetaPQ);
-    dataTree->Branch("PhiPQ",&PhiPQ);
-    dataTree->Branch("TimeCorr4",&TimeCorr4);
+    dataTree->Branch("EChit_M4",&EChit_M4,iTCA);
+    dataTree->Branch("Chi2EC",&Chi2EC,iTCA);
+    dataTree->Branch("SCpath",&SCpath,iTCA);
+    dataTree->Branch("SCtime",&SCtime,iTCA);
+    dataTree->Branch("CCnphe",&CCnphe,iTCA);
+    dataTree->Branch("T",&T,iTCA);
+    dataTree->Branch("Xf",&Xf,iTCA);
+    dataTree->Branch("Mx2",&Mx2,iTCA);
+    dataTree->Branch("Pt",&Pt,iTCA);
+    dataTree->Branch("Zh",&Zh,iTCA);
+    dataTree->Branch("ThetaPQ",&ThetaPQ,iTCA);
+    dataTree->Branch("PhiPQ",&PhiPQ,iTCA);
+    dataTree->Branch("TimeCorr4",&TimeCorr4,iTCA);
 
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
@@ -253,50 +251,50 @@ int main(int argc, char **argv)
         }
         
         memset(&myKine,0,sizeof(myKine)); // init kinematics struct to zeros
-        pEvtNum.clear();
-        nPart.clear();
-        Sector.clear();
-        Charge.clear();
-        Pid.clear();
-        Beta.clear();
-        Px.clear();
-        Py.clear();
-        Pz.clear();
-        Mom.clear();
-        Mass2.clear();
-        X.clear();
-        Y.clear();
-        Z.clear();
-        ECx.clear();
-        ECy.clear();
-        ECz.clear();
-        ECu.clear();
-        ECv.clear();
-        ECw.clear();
-        ECtot.clear();
-        ECin.clear();
-        ECout.clear();
-        ECtime.clear();
-        ECpath.clear();
-        EChit_M2.clear();
-        EChit_M3.clear();
-        EChit_M4.clear();
-        Chi2EC.clear();
-        SCpath.clear();
-        SCtime.clear();
-        CCnphe.clear();
-        T.clear();
-        Xf.clear();
-        Mx2.clear();
-        Pt.clear();
-        Zh.clear();
-        ThetaPQ.clear();
-        PhiPQ.clear();
-        TimeCorr4.clear();
+        Sector.Clear();
+        Charge.Clear();
+        Pid.Clear();
+        Beta.Clear();
+        Px.Clear();
+        Py.Clear();
+        Pz.Clear();
+        Mom.Clear();
+        Mass2.Clear();
+        X.Clear();
+        Y.Clear();
+        Z.Clear();
+        ECx.Clear();
+        ECy.Clear();
+        ECz.Clear();
+        ECu.Clear();
+        ECv.Clear();
+        ECw.Clear();
+        ECtot.Clear();
+        ECin.Clear();
+        ECout.Clear();
+        ECtime.Clear();
+        ECpath.Clear();
+        EChit_M2.Clear();
+        EChit_M3.Clear();
+        EChit_M4.Clear();
+        Chi2EC.Clear();
+        SCpath.Clear();
+        SCtime.Clear();
+        CCnphe.Clear();
+        T.Clear();
+        Xf.Clear();
+        Mx2.Clear();
+        Pt.Clear();
+        Zh.Clear();
+        ThetaPQ.Clear();
+        PhiPQ.Clear();
+        TimeCorr4.Clear();
         
         if(nRows>0){
 	    	topology = false; // init. the event topology cut
-	    	for (j = 0; j < nRows; j++) {
+            ip = 0; // found particle index
+            
+            for (j = 0; j < nRows; j++) {
 
                 partFound = false; // init the found particle flag to false
                 
@@ -345,54 +343,55 @@ int main(int argc, char **argv)
                 }
 
         		if (partFound) {
-                    Sector.push_back(t->Sector(j,kind));
-                    Charge.push_back(t->Charge(j,kind));
-                    Beta.push_back(t->Betta(j,kind));
-//                    Pid.push_back(t->Id(j,kind));
-                    Pid.push_back(savePid);
-                    Mom.push_back(t->Momentum(j,kind));
-                    Px.push_back(t->Px(j,kind));
-                    Py.push_back(t->Py(j,kind));
-                    Pz.push_back(t->Pz(j,kind));
-                    X.push_back(t->X(j,kind));
-                    Y.push_back(t->Y(j,kind));
-                    Z.push_back(t->Z(j,kind));
-                    Mass2.push_back(t->Mass2(j,kind));
-                    ThetaPQ.push_back(t -> ThetaPQ(j,kind));
-                    PhiPQ.push_back(t -> PhiPQ(j,kind));
-                    Zh.push_back(t -> Zh(j,kind));
-                    Pt.push_back(TMath::Sqrt(t -> Pt2(j,kind)));
-                    Mx2.push_back(t -> Mx2(j,kind));
-                    Xf.push_back(t -> Xf(j,kind));
-                    T.push_back(t -> T(j,kind));
-
+                    new ((*Sector)[ip]) t->Sector(j,kind);
+                    new ((*Charge)[ip]) t->Charge(j,kind);
+                    new ((*Beta)[ip]) t->Betta(j,kind);
+//                    new ((*Pid)[ip]) t->Id(j,kind);
+                    new ((*Pid)[ip]) savePid;
+                    new ((*Mom)[ip]) t->Momentum(j,kind);
+                    new ((*Px)[ip]) t->Px(j,kind);
+                    new ((*Py)[ip]) t->Py(j,kind);
+                    new ((*Pz)[ip]) t->Pz(j,kind);
+                    new ((*X)[ip]) t->X(j,kind);
+                    new ((*Y)[ip]) t->Y(j,kind);
+                    new ((*Z)[ip]) t->Z(j,kind);
+                    new ((*Mass2)[ip]) t->Mass2(j,kind);
+                    new ((*ThetaPQ)[ip]) t -> ThetaPQ(j,kind);
+                    new ((*PhiPQ)[ip]) t -> PhiPQ(j,kind);
+                    new ((*Zh)[ip]) t -> Zh(j,kind);
+                    new ((*Pt)[ip]) TMath::Sqrt(t -> Pt2(j,kind));
+                    new ((*Mx2)[ip]) t -> Mx2(j,kind);
+                    new ((*Xf)[ip]) t -> Xf(j,kind);
+                    new ((*T)[ip]) t -> T(j,kind);
+                         
                     if(simul_key == false){
-                        ECtot.push_back(TMath::Max(t->Etot(j),t->Ein(j)+t->Eout(j)));
-                        ECin.push_back(t->Ein(j));
-                        ECout.push_back(t->Eout(j));
-                        ECx.push_back(t->XEC(j));
-                        ECy.push_back(t->YEC(j));
-                        ECz.push_back(t->ZEC(j));
+                        new ((*ECtot)[ip]) TMath::Max(t->Etot(j),t->Ein(j)+t->Eout(j));
+                        new ((*ECin)[ip]) t->Ein(j);
+                        new ((*ECout)[ip]) t->Eout(j);
+                        new ((*ECx)[ip]) t->XEC(j);
+                        new ((*ECy)[ip]) t->YEC(j);
+                        new ((*ECz)[ip]) t->ZEC(j);
                         ECxyz->SetXYZ(t->XEC(j),t->YEC(j),t->ZEC(j));
                         ECuvw = t->XYZToUVW(ECxyz);
-                        ECu.push_back(ECuvw->X());
-                        ECv.push_back(ECuvw->Y());
-                        ECw.push_back(ECuvw->Z());
-                        ECtime.push_back(t->TimeEC(j));
-                        ECpath.push_back(t->PathEC(j));
-                        EChit_M2.push_back(t->EChit_Moment2(j));
-                        EChit_M3.push_back(t->EChit_Moment3(j));
-                        EChit_M4.push_back(t->EChit_Moment4(j));
-                        Chi2EC.push_back(t->Chi2EC(j));
-                        SCtime.push_back(t->TimeSC(j));
-                        SCpath.push_back(t->PathSC(j));
-                        CCnphe.push_back(t->Nphe(j));
+                        new ((*ECu)[ip]) ECuvw->X();
+                        new ((*ECv)[ip]) ECuvw->Y();
+                        new ((*ECw)[ip]) ECuvw->Z();
+                        new ((*ECtime)[ip]) t->TimeEC(j);
+                        new ((*ECpath)[ip]) t->PathEC(j);
+                        new ((*EChit_M2)[ip]) t->EChit_Moment2(j);
+                        new ((*EChit_M3)[ip]) t->EChit_Moment3(j);
+                        new ((*EChit_M4)[ip]) t->EChit_Moment4(j);
+                        new ((*Chi2EC)[ip]) t->Chi2EC(j);
+                        new ((*SCtime)[ip]) t->TimeSC(j);
+                        new ((*SCpath)[ip]) t->PathSC(j);
+                        new ((*CCnphe)[ip]) t->Nphe(j);
 
-                        if(t->Id(j,kind) == GetPID("Electron",kind)) TimeCorr4.push_back(t -> TimeCorr4(0.000511,j));
-                        if(t->Id(j,kind) == GetPID("PiPlus",kind)) TimeCorr4.push_back(t -> TimeCorr4(kMassPi_plus,j));
-                        if(t->Id(j,kind) == GetPID("PiMinus",kind)) TimeCorr4.push_back(t -> TimeCorr4(kMassPi_min,j));
-                        if(t->Id(j,kind) == GetPID("Photon",kind)) TimeCorr4.push_back(t -> TimeCorr4(0.0,j));
+                        if(t->Id(j,kind) == GetPID("Electron",kind)) new ((*TimeCorr4)[ip]) t -> TimeCorr4(0.000511,j);
+                        if(t->Id(j,kind) == GetPID("PiPlus",kind)) new ((*TimeCorr4)[ip]) t -> TimeCorr4(kMassPi_plus,j);
+                        if(t->Id(j,kind) == GetPID("PiMinus",kind)) new ((*TimeCorr4)[ip]) t -> TimeCorr4(kMassPi_min,j);
+                        if(t->Id(j,kind) == GetPID("Photon",kind)) new ((*TimeCorr4)[ip]) t -> TimeCorr4(0.0,j);
                     }
+                    ip++; // increment the found particle index
                 }
             }
             
@@ -406,9 +405,6 @@ int main(int argc, char **argv)
                 myKine.Nu = t -> Nu(kind);
                 myKine.Xb = t -> Xb(kind);
                 myKine.W = t -> W(kind);
-                
-                pEvtNum.push_back(t -> NEvent());
-                nPart.push_back(myKine.nElec + myKine.nPip + myKine.nPim + myKine.nGam); // save the number of particles
                 
                 if(simul_key){
                     myKine.Xcorr = t->X(0, kind);
@@ -440,6 +436,46 @@ int main(int argc, char **argv)
     float timeStop = clock();
     PrintAnalysisTime(timeStart,timeStop);
 
+    // delete the TClonesArray objects
+    ~Sector;
+    ~Charge;
+    ~Pid;
+    ~Beta;
+    ~Px;
+    ~Py;
+    ~Pz;
+    ~Mom;
+    ~Mass2;
+    ~X;
+    ~Y;
+    ~Z;
+    ~ECx;
+    ~ECy;
+    ~ECz;
+    ~ECu;
+    ~ECv;
+    ~ECw;
+    ~ECtot;
+    ~ECin;
+    ~ECout;
+    ~ECtime;
+    ~ECpath;
+    ~EChit_M2;
+    ~EChit_M3;
+    ~EChit_M4;
+    ~Chi2EC;
+    ~SCpath;
+    ~SCtime;
+    ~CCnphe;
+    ~T;
+    ~Xf;
+    ~Mx2;
+    ~Pt;
+    ~Zh;
+    ~ThetaPQ;
+    ~PhiPQ;
+    ~TimeCorr4;
+    
     return 0;
 }
 
