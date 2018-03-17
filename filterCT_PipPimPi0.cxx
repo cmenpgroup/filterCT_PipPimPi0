@@ -482,10 +482,10 @@ PARTVAR SetPARTVAR(TIdentificator t, int index, int kind, bool simul_key){
         
         myPart.CCnphe = t->Nphe(index);
         
-        if(myPart.Pid == GetPID("Electron",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.000511,i);
-        if(myPart.Pid == GetPID("PiPlus",kind)) myPart.TimeCorr4 = t -> TimeCorr4(kMassPi_plus,i);
-        if(myPart.Pid == GetPID("PiMinus",kind)) myPart.TimeCorr4 = t -> TimeCorr4(kMassPi_min,i);
-        if(myPart.Pid == GetPID("Photon",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.0,i);
+        if(myPart.Pid == GetPID("Electron",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.000511,index);
+        if(myPart.Pid == GetPID("PiPlus",kind)) myPart.TimeCorr4 = t -> TimeCorr4(kMassPi_plus,index);
+        if(myPart.Pid == GetPID("PiMinus",kind)) myPart.TimeCorr4 = t -> TimeCorr4(kMassPi_min,index);
+        if(myPart.Pid == GetPID("Photon",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.0,index);
     }
     
     return myPart;
