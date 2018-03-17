@@ -47,7 +47,7 @@ using namespace std;
 void PrintAnalysisTime(float tStart, float tStop);
 void PrintUsage(char *processName);
 int GetPID(string partName, int kind);
-PARTVAR SetPARTVAR(TIdentificator t, int index, int kind, bool simul_key);
+PARTVAR SetPARTVAR(TIdentificator *t, int index, int kind, bool simul_key);
 
 typedef struct{
     Float_t EvtNum, ElecVertTarg, Q2, Nu, Xb, W;
@@ -410,7 +410,7 @@ int GetPID(string partName, int kind){
     return ret;
 }
 
-PARTVAR SetPARTVAR(TIdentificator t, int index, int kind, bool simul_key){
+PARTVAR SetPARTVAR(TIdentificator *t, int index, int kind, bool simul_key){
     
     TVector3 *ECxyz = new TVector3(0.0,0.0,0.0);
     TVector3 *ECuvw;
