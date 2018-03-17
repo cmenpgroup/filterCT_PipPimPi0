@@ -294,7 +294,7 @@ int main(int argc, char **argv)
                                 myPhoton1 = SetPARTVAR(t, gamIndex.at(iGam1), kind, simul_key);
                                 for(unsigned iGam2=iGam1+1; iGam2<gamIndex.size(); iGam2++){
                                     myPhoton2 = SetPARTVAR(t, gamIndex.at(iGam2), kind, simul_key);
-                                    myKine.PartComb = 10000*iElec + 1000*iPip + 100*iPim + 10*iGam1 + iGam2;
+                                    myKine.PartComb = 10000*(iElec+1) + 1000*(iPip+1) + 100*(iPim+1) + 10*(iGam1+1) + iGam2 + 1;
                                     dataTree->Fill();
                                 }
                             }
