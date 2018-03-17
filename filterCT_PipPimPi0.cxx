@@ -76,7 +76,6 @@ int main(int argc, char **argv)
     extern int optind;
     
     int i, j, k;
-    int iElec, iPip, iPim, iGam1, iGam2;
     int nRows, kind, tempPid;
     int photonCtr;
     int candCtr = 0;
@@ -285,15 +284,15 @@ int main(int argc, char **argv)
                     myKine.Zcorr = vert->Z();
                 }
 
-                for(iElec=0; iElec<elecIndex.size(); iElec++){
-                    myElec = SetPARTVAR(t, elecIndex.at(iElec), kind, simul_key);
-                    for(iPip=0; iPip<pipIndex.size(); iPip++){
+                for(unsigned iElec=0; iElec<elecIndex.size(); iElec++){
+                    myElec = SetPARTVAR(t, elecIndex(iElec), kind, simul_key);
+                    for(unsigned iPip=0; iPip<pipIndex.size(); iPip++){
                         myPip = SetPARTVAR(t, pipIndex.at(iPip), kind, simul_key);
-                        for(iPim=0; iPim<pimIndex.size(); iPim++){
+                        for(unsigned iPim=0; iPim<pimIndex.size(); iPim++){
                             myPim = SetPARTVAR(t, pimIndex.at(iPim), kind, simul_key);
-                            for(iGam1=0; iGam1<gamIndex.size(); iGam1++){
+                            for(unsigned iGam1=0; iGam1<gamIndex.size(); iGam1++){
                                 myPhoton1 = SetPARTVAR(t, gamIndex.at(iGam1), kind, simul_key);
-                                for(iGam2=iGam1+1; iGam2<gamIndex.size(); iGam2++){
+                                for(unsigned iGam2=iGam1+1; iGam2<gamIndex.size(); iGam2++){
                                     myPhoton2 = SetPARTVAR(t, gamIndex.at(iGam2), kind, simul_key);
                                     myKine.PartComb = 10000*iElec + 1000*iPip + 100*iPim + 10*iGam1 + iGam2;
                                     dataTree->Fill();
