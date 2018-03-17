@@ -47,7 +47,6 @@ using namespace std;
 void PrintAnalysisTime(float tStart, float tStop);
 void PrintUsage(char *processName);
 int GetPID(string partName, int kind);
-PARTVAR SetPARTVAR(TIdentificator *t, int index, int kind, bool simul_key);
 
 typedef struct{
     Float_t EvtNum, ElecVertTarg, Q2, Nu, Xb, W;
@@ -67,6 +66,8 @@ typedef struct{
     float CCnphe; 
     float T, Xf, Mx2, Pt, Zh, ThetaPQ, PhiPQ, TimeCorr4;
 } PARTVAR;
+
+PARTVAR SetPARTVAR(TIdentificator *t, int index, int kind, bool simul_key);
 
 int main(int argc, char **argv)
 {
