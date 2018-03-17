@@ -77,7 +77,6 @@ int main(int argc, char **argv)
     
     int i, j, k;
     int nRows, kind, tempPid;
-    int photonCtr;
     int candCtr = 0;
     int ctr_nElec = 0;
     int dEvents = 1000; // increment of events for processing print statement
@@ -285,7 +284,7 @@ int main(int argc, char **argv)
                 }
 
                 for(unsigned iElec=0; iElec<elecIndex.size(); iElec++){
-                    myElec = SetPARTVAR(t, elecIndex(iElec), kind, simul_key);
+                    myElec = SetPARTVAR(t, elecIndex.at(iElec), kind, simul_key);
                     for(unsigned iPip=0; iPip<pipIndex.size(); iPip++){
                         myPip = SetPARTVAR(t, pipIndex.at(iPip), kind, simul_key);
                         for(unsigned iPim=0; iPim<pimIndex.size(); iPim++){
