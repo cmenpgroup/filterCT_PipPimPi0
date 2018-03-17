@@ -4,7 +4,6 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TVector3.h"
-#include "TClonesArray.h"
 #include "TClasTool.h"
 #include "TIdentificator.h"
 #include "TMath.h"
@@ -48,21 +47,38 @@ using namespace std;
 void PrintAnalysisTime(float tStart, float tStop);
 void PrintUsage(char *processName);
 int GetPID(string partName, int kind);
+PARTVAR SetPARTVAR(TIdentificator t, int index, int kind, bool simul_key);
 
 typedef struct{
     Float_t EvtNum, ElecVertTarg, Q2, Nu, Xb, W;
     Float_t Xcorr, Ycorr, Zcorr;
     Int_t nElec, nPip, nPim, nGam, nProton, nNeutron, nKp, nKm, nPositron;
+    Int_t PartComb;
 } KINEVAR;
+
+typedef struct{
+    int Sector;
+    float Charge, Pid, Beta;
+    float Px, Py, Pz, Mom, Mass2;
+    float X, Y, Z;
+    float ECx, ECy, ECz, ECu, ECv, ECw, ECtot, ECin, ECout, ECtime, ECpath;
+    float EChit_M2, EChit_M3, EChit_M4, Chi2EC;
+    float SCpath, SCtime;
+    float CCnphe; 
+    float T, Xf, Mx2, Pt, Zh, ThetaPQ, PhiPQ, TimeCorr4;
+} PARTVAR;
 
 int main(int argc, char **argv)
 {
+    gROOT->SetBatch(true);
     extern char *optarg;
     int c;
     extern int optind;
     
     int i, j, k;
-    int nRows, kind, tempPid, savePid;
+    int iElec, iPip, iPim, iGam1, iGam2;
+    int nRows, kind, tempPid;
+    int photonCtr;
     int candCtr = 0;
     int ctr_nElec = 0;
     int dEvents = 1000; // increment of events for processing print statement
@@ -81,12 +97,13 @@ int main(int argc, char **argv)
     char *inFile;
     string outFile = "PipPimPi0.root";
     
-    bool partFound = false;
     bool topology = false;
-
+    vector<int> elecIndex;
+    vector<int> pipIndex;
+    vector<int> pimIndex;
+    vector<int> gamIndex;
+    
     TVector3 *vert;
-    TVector3 *ECxyz = new TVector3(0.0,0.0,0.0);
-    TVector3 *ECuvw;
     
     float timeStart = clock(); // start time
     
@@ -128,91 +145,24 @@ int main(int argc, char **argv)
         default: cout<<"Unknown target "<<target<<endl; exit(0); break;
     }
     cout<<"Analyzing " << target << " target data"<<endl;
-  
-    TClonesArray *Sector = new TClonesArray("Int_t");
-    TClonesArray *Charge = new TClonesArray("Double_t");
-    TClonesArray *Pid = new TClonesArray("Double_t");
-    TClonesArray *Beta = new TClonesArray("Double_t");
-    TClonesArray *Px = new TClonesArray("Double_t");
-    TClonesArray *Py = new TClonesArray("Double_t");
-    TClonesArray *Pz = new TClonesArray("Double_t");
-    TClonesArray *Mom = new TClonesArray("Double_t");
-    TClonesArray *Mass2 = new TClonesArray("Double_t");
-    TClonesArray *X = new TClonesArray("Double_t");
-    TClonesArray *Y = new TClonesArray("Double_t");
-    TClonesArray *Z = new TClonesArray("Double_t");
-    TClonesArray *ECx = new TClonesArray("Double_t");
-    TClonesArray *ECy = new TClonesArray("Double_t");
-    TClonesArray *ECz = new TClonesArray("Double_t");
-    TClonesArray *ECu = new TClonesArray("Double_t");
-    TClonesArray *ECv = new TClonesArray("Double_t");
-    TClonesArray *ECw = new TClonesArray("Double_t");
-    TClonesArray *ECtot = new TClonesArray("Double_t");
-    TClonesArray *ECin = new TClonesArray("Double_t");
-    TClonesArray *ECout = new TClonesArray("Double_t");
-    TClonesArray *ECtime = new TClonesArray("Double_t");
-    TClonesArray *ECpath = new TClonesArray("Double_t");
-    TClonesArray *EChit_M2 = new TClonesArray("Double_t");
-    TClonesArray *EChit_M3 = new TClonesArray("Double_t");
-    TClonesArray *EChit_M4 = new TClonesArray("Double_t");
-    TClonesArray *Chi2EC = new TClonesArray("Double_t");
-    TClonesArray *SCpath = new TClonesArray("Double_t");
-    TClonesArray *SCtime = new TClonesArray("Double_t");
-    TClonesArray *CCnphe = new TClonesArray("Double_t");
-    TClonesArray *T = new TClonesArray("Double_t");
-    TClonesArray *Xf = new TClonesArray("Double_t");
-    TClonesArray *Mx2 = new TClonesArray("Double_t");
-    TClonesArray *Pt = new TClonesArray("Double_t");
-    TClonesArray *Zh = new TClonesArray("Double_t");
-    TClonesArray *ThetaPQ = new TClonesArray("Double_t");
-    TClonesArray *PhiPQ = new TClonesArray("Double_t");
-    TClonesArray *TimeCorr4 = new TClonesArray("Double_t");
     
-    string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I:nProton/I:nNeutron/I:nKp/I:nKm/I:nPositron/I";
+    string kineList = "EvtNum/F:ElecVertTarg/F:Q2/F:Nu/F:Xb/F:W:Xcorr/F:Ycorr/F:Zcorr/F:nElec/I:nPip/I:nPim/I:nGam/I:nProton/I:nNeutron/I:nKp/I:nKm/I:nPositron/I:PartComb/I";
+ 
+    string partList = "Sector/I:Charge/F:Pid/F:Beta/F:Px/F:Py/F:Pz/F:Mom/F:Mass2/F:X/F:Y/F:Z/F:ECx/F:ECy/F:ECz/F:ECu/F:ECv/F:ECw/F:ECtot/F:ECin/F:ECout/F:ECtime/F:ECpath/F:EChit_M2/F:EChit_M3/F:EChit_M4/F:Chi2EC/F:SCpath/F:SCtime/F:CCnphe/F:T/F:Xf/F:Mx2/F:Pt/F:Zh/F:ThetaPQ/F:PhiPQ/F:TimeCorr4/F";    
     KINEVAR myKine;
-    
+    PARTVAR myElec;
+    PARTVAR myPip;
+    PARTVAR myPim;
+    PARTVAR myPhoton1;
+    PARTVAR myPhoton2;
+
     TTree *dataTree = new TTree("Data","Experimental Data Tree");
     dataTree->Branch("Kinematics",&myKine,kineList.c_str());
-
-    Int_t iTCA = 15;
-    dataTree->Branch("Sector",&Sector,iTCA);
-    dataTree->Branch("Charge",&Charge,iTCA);
-    dataTree->Branch("Pid",&Pid,iTCA);
-    dataTree->Branch("Beta",&Beta,iTCA);
-    dataTree->Branch("Px",&Px,iTCA);
-    dataTree->Branch("Py",&Py,iTCA);
-    dataTree->Branch("Pz",&Pz,iTCA);
-    dataTree->Branch("Mom",&Mom,iTCA);
-    dataTree->Branch("Mass2",&Mass2,iTCA);
-    dataTree->Branch("X",&X,iTCA);
-    dataTree->Branch("Y",&Y,iTCA);
-    dataTree->Branch("Z",&Z,iTCA);
-    dataTree->Branch("ECx",&ECx,iTCA);
-    dataTree->Branch("ECy",&ECy,iTCA);
-    dataTree->Branch("ECz",&ECz,iTCA);
-    dataTree->Branch("ECu",&ECu,iTCA);
-    dataTree->Branch("ECv",&ECv,iTCA);
-    dataTree->Branch("ECw",&ECw,iTCA);
-    dataTree->Branch("ECtot",&ECtot,iTCA);
-    dataTree->Branch("ECin",&ECin,iTCA);
-    dataTree->Branch("ECout",&ECout,iTCA);
-    dataTree->Branch("ECtime",&ECtime,iTCA);
-    dataTree->Branch("ECpath",&ECpath,iTCA);
-    dataTree->Branch("EChit_M2",&EChit_M2,iTCA);
-    dataTree->Branch("EChit_M3",&EChit_M3),
-    dataTree->Branch("EChit_M4",&EChit_M4,iTCA);
-    dataTree->Branch("Chi2EC",&Chi2EC,iTCA);
-    dataTree->Branch("SCpath",&SCpath,iTCA);
-    dataTree->Branch("SCtime",&SCtime,iTCA);
-    dataTree->Branch("CCnphe",&CCnphe,iTCA);
-    dataTree->Branch("T",&T,iTCA);
-    dataTree->Branch("Xf",&Xf,iTCA);
-    dataTree->Branch("Mx2",&Mx2,iTCA);
-    dataTree->Branch("Pt",&Pt,iTCA);
-    dataTree->Branch("Zh",&Zh,iTCA);
-    dataTree->Branch("ThetaPQ",&ThetaPQ,iTCA);
-    dataTree->Branch("PhiPQ",&PhiPQ,iTCA);
-    dataTree->Branch("TimeCorr4",&TimeCorr4,iTCA);
+    dataTree->Branch("Electron",&myElec,partList.c_str());
+    dataTree->Branch("PiPlus",&myPip,partList.c_str());
+    dataTree->Branch("PiMinus",&myPim,partList.c_str());
+    dataTree->Branch("Photon1",&myPhoton1,partList.c_str());
+    dataTree->Branch("Photon2",&myPhoton2,partList.c_str());
 
     output = new TFile(outFile.c_str(), "RECREATE", "Experimental Data");
     
@@ -250,54 +200,26 @@ int main(int argc, char **argv)
             nRows = input->GetNRows("EVNT");
         }
         
-        memset(&myKine,0,sizeof(myKine)); // init kinematics struct to zeros
-        Sector.Clear();
-        Charge.Clear();
-        Pid.Clear();
-        Beta.Clear();
-        Px.Clear();
-        Py.Clear();
-        Pz.Clear();
-        Mom.Clear();
-        Mass2.Clear();
-        X.Clear();
-        Y.Clear();
-        Z.Clear();
-        ECx.Clear();
-        ECy.Clear();
-        ECz.Clear();
-        ECu.Clear();
-        ECv.Clear();
-        ECw.Clear();
-        ECtot.Clear();
-        ECin.Clear();
-        ECout.Clear();
-        ECtime.Clear();
-        ECpath.Clear();
-        EChit_M2.Clear();
-        EChit_M3.Clear();
-        EChit_M4.Clear();
-        Chi2EC.Clear();
-        SCpath.Clear();
-        SCtime.Clear();
-        CCnphe.Clear();
-        T.Clear();
-        Xf.Clear();
-        Mx2.Clear();
-        Pt.Clear();
-        Zh.Clear();
-        ThetaPQ.Clear();
-        PhiPQ.Clear();
-        TimeCorr4.Clear();
+//       cout<<"Event "<<k+1<<endl;
         
         if(nRows>0){
-	    	topology = false; // init. the event topology cut
-            ip = 0; // found particle index
+      		myKine.nElec = 0;
+      		myKine.nPip = 0;
+	    	myKine.nPim = 0;
+	    	myKine.nGam = 0;
+	    	myKine.nProton = 0;
+            myKine.nNeutron = 0;
+            myKine.nKp = 0;
+            myKine.nKm = 0;
+            myKine.nPositron = 0;
+            elecIndex.clear(); // clear out the electron list
+            pipIndex.clear(); // clear out the pi+ list
+            pimIndex.clear(); // clear out the pi- list
+            gamIndex.clear(); // clear out the photon list
             
-            for (j = 0; j < nRows; j++) {
+            topology = false; // init. the event topology cut
+	    	for (j = 0; j < nRows; j++) {
 
-                partFound = false; // init the found particle flag to false
-                
                 // select the PID selection scheme
                 if(simul_key){
                     catPid = t -> GetCategorizationGSIM(j);
@@ -309,103 +231,49 @@ int main(int argc, char **argv)
                     }
                 }
                 tempPid = t -> Id(j,kind);
+               
+//                cout<<"Particle "<< tempPid <<"\t"<<catPid<<endl;
+//                if(tempPid == GetPID("Electron",kind)){
+                if(catPid.EqualTo("electron")){
+                    myKine.nElec++;
+                    elecIndex.push_back(j);
+                    ctr_nElec++;
+                }
+                if(catPid.EqualTo("high energy pion +") || catPid.EqualTo("low energy pion +") || catPid.EqualTo("pi+")){
+//                if(tempPid == GetPID("PiPlus",kind)){
+                    myKine.nPip++;
+                    pipIndex.push_back(j);
+                }
+                if(catPid.EqualTo("pi-")){
+//                if(tempPid == GetPID("PiMinus",kind)){
+                    myKine.nPim++;
+                    pimIndex.push_back(j);
+                }
+                if(catPid.EqualTo("gamma")){
+//                if(tempPid == GetPID("Photon",kind)){
+                    myKine.nGam++;
+                    gamIndex.push_back(j);
+                }
+                
                 if(tempPid == GetPID("Proton",kind)) myKine.nProton++;
                 if(tempPid == GetPID("Neutron",kind)) myKine.nNeutron++;
                 if(tempPid == GetPID("KPlus",kind)) myKine.nKp++;
                 if(tempPid == GetPID("KMinus",kind)) myKine.nKm++;
                 if(tempPid == GetPID("Positron",kind)) myKine.nPositron++;
-                
-//                cout<<"Particle "<< tempPid <<"\t"<<catPid<<endl;
-//                if(tempPid == GetPID("Electron",kind)){
-                if(catPid.EqualTo("electron")){
-                    myKine.nElec++;
-                    ctr_nElec++;
-                    partFound = true; // init the found particle flag to true
-                    savePid = GetPID("Electron",kind); // set the correct particle id
-                }
-                if(catPid.EqualTo("high energy pion +") || catPid.EqualTo("low energy pion +") || catPid.EqualTo("pi+")){
-//                if(tempPid == GetPID("PiPlus",kind)){
-                    myKine.nPip++;
-                    partFound = true; // init the found particle flag to true
-                    savePid = GetPID("PiPlus",kind); // set the correct particle id
-                }
-                if(catPid.EqualTo("pi-")){
-//                if(tempPid == GetPID("PiMinus",kind)){
-                    myKine.nPim++;
-                    partFound = true; // init the found particle flag to true
-                    savePid = GetPID("PiMinus",kind); // set the correct particle id
-                }
-                if(catPid.EqualTo("gamma")){
-//                if(tempPid == GetPID("Photon",kind)){
-                    myKine.nGam++;
-                    partFound = true; // init the found particle flag to true
-                    savePid = GetPID("Photon",kind); // set the correct particle id
-                }
-
-        		if (partFound) {
-                    new ((*Sector)[ip]) t->Sector(j,kind);
-                    new ((*Charge)[ip]) t->Charge(j,kind);
-                    new ((*Beta)[ip]) t->Betta(j,kind);
-//                    new ((*Pid)[ip]) t->Id(j,kind);
-                    new ((*Pid)[ip]) savePid;
-                    new ((*Mom)[ip]) t->Momentum(j,kind);
-                    new ((*Px)[ip]) t->Px(j,kind);
-                    new ((*Py)[ip]) t->Py(j,kind);
-                    new ((*Pz)[ip]) t->Pz(j,kind);
-                    new ((*X)[ip]) t->X(j,kind);
-                    new ((*Y)[ip]) t->Y(j,kind);
-                    new ((*Z)[ip]) t->Z(j,kind);
-                    new ((*Mass2)[ip]) t->Mass2(j,kind);
-                    new ((*ThetaPQ)[ip]) t -> ThetaPQ(j,kind);
-                    new ((*PhiPQ)[ip]) t -> PhiPQ(j,kind);
-                    new ((*Zh)[ip]) t -> Zh(j,kind);
-                    new ((*Pt)[ip]) TMath::Sqrt(t -> Pt2(j,kind));
-                    new ((*Mx2)[ip]) t -> Mx2(j,kind);
-                    new ((*Xf)[ip]) t -> Xf(j,kind);
-                    new ((*T)[ip]) t -> T(j,kind);
-                         
-                    if(simul_key == false){
-                        new ((*ECtot)[ip]) TMath::Max(t->Etot(j),t->Ein(j)+t->Eout(j));
-                        new ((*ECin)[ip]) t->Ein(j);
-                        new ((*ECout)[ip]) t->Eout(j);
-                        new ((*ECx)[ip]) t->XEC(j);
-                        new ((*ECy)[ip]) t->YEC(j);
-                        new ((*ECz)[ip]) t->ZEC(j);
-                        ECxyz->SetXYZ(t->XEC(j),t->YEC(j),t->ZEC(j));
-                        ECuvw = t->XYZToUVW(ECxyz);
-                        new ((*ECu)[ip]) ECuvw->X();
-                        new ((*ECv)[ip]) ECuvw->Y();
-                        new ((*ECw)[ip]) ECuvw->Z();
-                        new ((*ECtime)[ip]) t->TimeEC(j);
-                        new ((*ECpath)[ip]) t->PathEC(j);
-                        new ((*EChit_M2)[ip]) t->EChit_Moment2(j);
-                        new ((*EChit_M3)[ip]) t->EChit_Moment3(j);
-                        new ((*EChit_M4)[ip]) t->EChit_Moment4(j);
-                        new ((*Chi2EC)[ip]) t->Chi2EC(j);
-                        new ((*SCtime)[ip]) t->TimeSC(j);
-                        new ((*SCpath)[ip]) t->PathSC(j);
-                        new ((*CCnphe)[ip]) t->Nphe(j);
-
-                        if(t->Id(j,kind) == GetPID("Electron",kind)) new ((*TimeCorr4)[ip]) t -> TimeCorr4(0.000511,j);
-                        if(t->Id(j,kind) == GetPID("PiPlus",kind)) new ((*TimeCorr4)[ip]) t -> TimeCorr4(kMassPi_plus,j);
-                        if(t->Id(j,kind) == GetPID("PiMinus",kind)) new ((*TimeCorr4)[ip]) t -> TimeCorr4(kMassPi_min,j);
-                        if(t->Id(j,kind) == GetPID("Photon",kind)) new ((*TimeCorr4)[ip]) t -> TimeCorr4(0.0,j);
-                    }
-                    ip++; // increment the found particle index
-                }
             }
-            
-            topology = (myKine.nElec>=MAX_ELECTRONS && myKine.nPip>=MAX_PIPLUS && myKine.nPim>=MAX_PIMINUS && myKine.nGam>=MAX_PHOTONS); // check event topology
-                
-            if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
+
+            // check event topology
+            topology = (myKine.nElec>=MAX_ELECTRONS && myKine.nPip>=MAX_PIPLUS && myKine.nPim>=MAX_PIMINUS && myKine.nGam>=MAX_PHOTONS);
+
+	    	if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
                 candCtr++;
                 myKine.EvtNum = t -> NEvent();
                 myKine.ElecVertTarg = t -> ElecVertTarg(kind);
                 myKine.Q2 = t -> Q2(kind);
-                myKine.Nu = t -> Nu(kind);
-                myKine.Xb = t -> Xb(kind);
-                myKine.W = t -> W(kind);
-                
+		     	myKine.Nu = t -> Nu(kind);
+	       		myKine.Xb = t -> Xb(kind);
+        		myKine.W = t -> W(kind);
+
                 if(simul_key){
                     myKine.Xcorr = t->X(0, kind);
                     myKine.Ycorr = t->Y(0, kind);
@@ -416,10 +284,26 @@ int main(int argc, char **argv)
                     myKine.Ycorr = vert->Y();
                     myKine.Zcorr = vert->Z();
                 }
-                    
-                dataTree->Fill();
+
+                for(iElec=0; iElec<elecIndex.size(); iElec++){
+                    myElec = SetPARTVAR(t, elecIndex.at(iElec), kind, simul_key);
+                    for(iPip=0; iPip<pipIndex.size(); iPip++){
+                        myPip = SetPARTVAR(t, pipIndex.at(iPip), kind, simul_key);
+                        for(iPim=0; iPim<pimIndex.size(); iPim++){
+                            myPim = SetPARTVAR(t, pimIndex.at(iPim), kind, simul_key);
+                            for(iGam1=0; iGam1<gamIndex.size(); iGam1++){
+                                myPhoton1 = SetPARTVAR(t, gamIndex.at(iGam1), kind, simul_key);
+                                for(iGam2=iGam1+1; iGam2<gamIndex.size(); iGam2++){
+                                    myPhoton2 = SetPARTVAR(t, gamIndex.at(iGam2), kind, simul_key);
+                                    myKine.PartComb = 10000*iElec + 1000*iPip + 100*iPim + 10*iGam1 + iGam2;
+                                    dataTree->Fill();
+                                }
+                            }
+                        }
+                    }
+                }
             }
-    	} 
+        }
     	k++; // increment event counter
         input->Next();
     }
@@ -436,46 +320,6 @@ int main(int argc, char **argv)
     float timeStop = clock();
     PrintAnalysisTime(timeStart,timeStop);
 
-    // delete the TClonesArray objects
-    ~Sector;
-    ~Charge;
-    ~Pid;
-    ~Beta;
-    ~Px;
-    ~Py;
-    ~Pz;
-    ~Mom;
-    ~Mass2;
-    ~X;
-    ~Y;
-    ~Z;
-    ~ECx;
-    ~ECy;
-    ~ECz;
-    ~ECu;
-    ~ECv;
-    ~ECw;
-    ~ECtot;
-    ~ECin;
-    ~ECout;
-    ~ECtime;
-    ~ECpath;
-    ~EChit_M2;
-    ~EChit_M3;
-    ~EChit_M4;
-    ~Chi2EC;
-    ~SCpath;
-    ~SCtime;
-    ~CCnphe;
-    ~T;
-    ~Xf;
-    ~Mx2;
-    ~Pt;
-    ~Zh;
-    ~ThetaPQ;
-    ~PhiPQ;
-    ~TimeCorr4;
-    
     return 0;
 }
 
@@ -564,4 +408,85 @@ int GetPID(string partName, int kind){
         cerr<<"GetPID: Unknown analysis channel "<<kind<<endl;
     }
     return ret;
+}
+
+PARTVAR SetPARTVAR(TIdentificator t, int index, int kind, bool simul_key){
+    
+    TVector3 *ECxyz = new TVector3(0.0,0.0,0.0);
+    TVector3 *ECuvw;
+    PARTVAR myPart;
+    
+    myPart.Sector = t->Sector(index,kind);
+    myPart.Charge = t->Charge(index,kind);
+    myPart.Beta = t->Betta(index,kind);
+    myPart.Pid = t->Id(index,kind);
+    myPart.Mom = t->Momentum(index,kind);
+    myPart.Px = t->Px(index, kind);
+    myPart.Py = t->Py(index, kind);
+    myPart.Pz = t->Pz(index, kind);
+    myPart.X = t->X(index, kind);
+    myPart.Y = t->Y(index, kind);
+    myPart.Z = t->Z(index, kind);
+    myPart.Mass2 = t->Mass2(index,kind);
+    
+    myPart.ThetaPQ = t -> ThetaPQ(index, kind);
+    myPart.PhiPQ = t -> PhiPQ(index, kind);
+    myPart.Zh = t -> Zh(index, kind);
+    myPart.Pt = TMath::Sqrt(t -> Pt2(index, kind));
+    myPart.Mx2 = t -> Mx2(index, kind);
+    myPart.Xf = t -> Xf(index, kind);
+    myPart.T = t -> T(index, kind);
+    
+    // initialize detector info
+    myPart.ECtot = 0;
+    myPart.ECin = 0;
+    myPart.ECout = 0;
+    myPart.ECx = 0;
+    myPart.ECy = 0;
+    myPart.ECz = 0;
+    myPart.ECu = 0;
+    myPart.ECv = 0;
+    myPart.ECw = 0;
+    myPart.ECtime = 0;
+    myPart.ECpath = 0;
+    myPart.EChit_M2 = 0;
+    myPart.EChit_M3 = 0;
+    myPart.EChit_M4 = 0;
+    myPart.Chi2EC = 0;
+    myPart.SCtime = 0;
+    myPart.SCpath = 0;
+    myPart.CCnphe = 0;
+    myPart.TimeCorr4 = 0;
+    
+    if(simul_key == false){
+        myPart.ECtot = TMath::Max(t->Etot(index),t->Ein(index)+t->Eout(index));
+        myPart.ECin = t->Ein(index);
+        myPart.ECout = t->Eout(index);
+        myPart.ECx = t->XEC(index);
+        myPart.ECy = t->YEC(index);
+        myPart.ECz = t->ZEC(index);
+        ECxyz->SetXYZ(t->XEC(index),t->YEC(index),t->ZEC(index));
+        ECuvw = t->XYZToUVW(ECxyz);
+        myPart.ECu = ECuvw->X();
+        myPart.ECv = ECuvw->Y();
+        myPart.ECw = ECuvw->Z();
+        myPart.ECtime = t->TimeEC(index);
+        myPart.ECpath = t->PathEC(index);
+        myPart.EChit_M2 = t->EChit_Moment2(index);
+        myPart.EChit_M3 = t->EChit_Moment3(index);
+        myPart.EChit_M4 = t->EChit_Moment4(index);
+        myPart.Chi2EC = t->Chi2EC(index);
+        
+        myPart.SCtime = t->TimeSC(index);
+        myPart.SCpath = t->PathSC(index);
+        
+        myPart.CCnphe = t->Nphe(index);
+        
+        if(myPart.Pid == GetPID("Electron",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.000511,i);
+        if(myPart.Pid == GetPID("PiPlus",kind)) myPart.TimeCorr4 = t -> TimeCorr4(kMassPi_plus,i);
+        if(myPart.Pid == GetPID("PiMinus",kind)) myPart.TimeCorr4 = t -> TimeCorr4(kMassPi_min,i);
+        if(myPart.Pid == GetPID("Photon",kind)) myPart.TimeCorr4 = t -> TimeCorr4(0.0,i);
+    }
+    
+    return myPart;
 }
