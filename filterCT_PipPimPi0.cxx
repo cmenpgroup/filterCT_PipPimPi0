@@ -295,6 +295,12 @@ int main(int argc, char **argv)
                                 for(unsigned iGam2=iGam1+1; iGam2<gamIndex.size(); iGam2++){
                                     myPhoton2 = SetPARTVAR(t, gamIndex.at(iGam2), kind, simul_key);
                                     myKine.PartComb = 10000*(iElec+1) + 1000*(iPip+1) + 100*(iPim+1) + 10*(iGam1+1) + iGam2 + 1;
+                                    cout<<"Evt "<<myKine.EvtNum<<"\t"<<myKine.PartComb<<endl;
+                                    cout<<"e- "<<myElec.Px<<"\t"<<myElec.Py<<"\t"<<myElec.Pz<<endl;
+                                    cout<<"pi+ "<<myPip.Px<<"\t"<<myPip.Py<<"\t"<<myPip.Pz<<endl;
+                                    cout<<"pi- "<<myPim.Px<<"\t"<<myPim.Py<<"\t"<<myPim.Pz<<endl;
+                                    cout<<"gam1 "<<myPhoton1.Px<<"\t"<<myPhoton1.Py<<"\t"<<myPhoton1.Pz<<endl;
+                                    cout<<"gam2 "<<myPhoton2.Px<<"\t"<<myPhoton2.Py<<"\t"<<myPhoton2.Pz<<endl;
                                     dataTree->Fill();
                                 }
                             }
