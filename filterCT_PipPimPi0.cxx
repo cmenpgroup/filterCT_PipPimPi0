@@ -200,9 +200,7 @@ int main(int argc, char **argv)
             nRows = input->GetNRows("EVNT");
         }
         
-//       cout<<"Event "<<k+1<<endl;
-        
-        if(nRows>0){
+        if(nRows > MAX_ELECTRONS + MAX_PIPLUS + MAX_PIMINUS + MAX_PHOTONS){
       		myKine.nElec = 0;
       		myKine.nPip = 0;
 	    	myKine.nPim = 0;
@@ -232,25 +230,20 @@ int main(int argc, char **argv)
                 }
                 tempPid = t -> Id(j,kind);
                
-//                cout<<"Particle "<< tempPid <<"\t"<<catPid<<endl;
-//                if(tempPid == GetPID("Electron",kind)){
                 if(catPid.EqualTo("electron")){
                     myKine.nElec++;
                     elecIndex.push_back(j);
                     ctr_nElec++;
                 }
                 if(catPid.EqualTo("high energy pion +") || catPid.EqualTo("low energy pion +") || catPid.EqualTo("pi+")){
-//                if(tempPid == GetPID("PiPlus",kind)){
                     myKine.nPip++;
                     pipIndex.push_back(j);
                 }
                 if(catPid.EqualTo("pi-")){
-//                if(tempPid == GetPID("PiMinus",kind)){
                     myKine.nPim++;
                     pimIndex.push_back(j);
                 }
                 if(catPid.EqualTo("gamma")){
-//                if(tempPid == GetPID("Photon",kind)){
                     myKine.nGam++;
                     gamIndex.push_back(j);
                 }
@@ -265,7 +258,7 @@ int main(int argc, char **argv)
             // check event topology
             topology = (myKine.nElec>=MAX_ELECTRONS && myKine.nPip>=MAX_PIPLUS && myKine.nPim>=MAX_PIMINUS && myKine.nGam>=MAX_PHOTONS);
 
-	    	if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
+	    	 if(topology && t->Q2(kind) > CUT_Q2 && t->W(kind) > CUT_W && t->Nu(kind)/EBEAM < CUT_NU) {
                 candCtr++;
                 myKine.EvtNum = t -> NEvent();
                 myKine.ElecVertTarg = t -> ElecVertTarg(kind);
@@ -296,12 +289,6 @@ int main(int argc, char **argv)
                                 for(unsigned iGam2=iGam1+1; iGam2<gamIndex.size(); iGam2++){
                                     myPhoton2 = SetPARTVAR(t, gamIndex.at(iGam2), kind, simul_key);
                                     myKine.PartComb = 10000*(iElec+1) + 1000*(iPip+1) + 100*(iPim+1) + 10*(iGam1+1) + iGam2 + 1;
-//                                    cout<<"Evt "<<myKine.EvtNum<<"\t"<<myKine.PartComb<<endl;
-//                                    cout<<"e- "<<myElec.Px<<"\t"<<myElec.Py<<"\t"<<myElec.Pz<<endl;
-//                                    cout<<"pi+ "<<myPip.Px<<"\t"<<myPip.Py<<"\t"<<myPip.Pz<<endl;
-//                                    cout<<"pi- "<<myPim.Px<<"\t"<<myPim.Py<<"\t"<<myPim.Pz<<endl;
-//                                    cout<<"gam1 "<<myPhoton1.Px<<"\t"<<myPhoton1.Py<<"\t"<<myPhoton1.Pz<<endl;
-//                                    cout<<"gam2 "<<myPhoton2.Px<<"\t"<<myPhoton2.Py<<"\t"<<myPhoton2.Pz<<endl;
                                     combCtr++;
                                     dataTree->Fill();
                                 }
