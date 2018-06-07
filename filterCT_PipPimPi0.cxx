@@ -249,11 +249,12 @@ int main(int argc, char **argv)
                     gamIndex.push_back(j);
                 }
                 
-                if(tempPid == GetPID("Proton",kind)) myKine.nProton++;
-                if(tempPid == GetPID("Neutron",kind)) myKine.nNeutron++;
-                if(tempPid == GetPID("KPlus",kind)) myKine.nKp++;
-                if(tempPid == GetPID("KMinus",kind)) myKine.nKm++;
-                if(tempPid == GetPID("Positron",kind)) myKine.nPositron++;
+                // using PDG id numbers for both EVNT and GSIM
+                if(tempPid == GetPID("Proton",0)) myKine.nProton++;
+                if(tempPid == GetPID("Neutron",0)) myKine.nNeutron++;
+                if(tempPid == GetPID("KPlus",0)) myKine.nKp++;
+                if(tempPid == GetPID("KMinus",0)) myKine.nKm++;
+                if(tempPid == GetPID("Positron",0)) myKine.nPositron++;
             }
 
             // check event topology
