@@ -84,7 +84,8 @@ int main(int argc, char **argv)
     int dEvents = 1000; // increment of events for processing print statement
     int MaxEvents = 0; // max. number of events to process
     int nfiles = 0; // number of processed files
-    
+    int minRows = MAX_ELECTRONS + MAX_PIPLUS + MAX_PIMINUS + MAX_PHOTONS; // number of particles in an event to start filtering
+
     TString catPid;
     
     bool bBatchMode = false;    // quiet mode
@@ -200,7 +201,7 @@ int main(int argc, char **argv)
             nRows = input->GetNRows("EVNT");
         }
         
-        if(nRows > MAX_ELECTRONS + MAX_PIPLUS + MAX_PIMINUS + MAX_PHOTONS){
+        if(nRows > minRows){
       		myKine.nElec = 0;
       		myKine.nPip = 0;
 	    	myKine.nPim = 0;
