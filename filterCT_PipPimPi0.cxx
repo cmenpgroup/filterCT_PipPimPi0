@@ -201,7 +201,7 @@ int main(int argc, char **argv)
             nRows = input->GetNRows("EVNT");
         }
         
-        if(nRows > minRows){
+        if(nRows >= minRows){
       		myKine.nElec = 0;
       		myKine.nPip = 0;
 	    	myKine.nPim = 0;
